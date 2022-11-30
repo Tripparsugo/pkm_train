@@ -1,0 +1,121 @@
+species,item,ability,type1,type2,move1,move2,move3,move4,won
+Zoroark,Focus Sash,Illusion,Dark,,Nasty Plot,Focus Blast,Sludge Bomb,Dark Pulse,true
+Rotom-Heat,Choice Scarf,Levitate,Electric,Fire,Volt Switch,Thunderbolt,Hidden Power Ice,Overheat,true
+Marowak,Thick Club,Battle Armor,Ground,,Bonemerang,Knock Off,Substitute,Stone Edge,true
+Illumise,Leftovers,Prankster,Bug,,U-turn,Bug Buzz,Roost,Encore,true
+Staraptor,Choice Band,Reckless,Normal,Flying,U-turn,Double-Edge,Brave Bird,Quick Attack,true
+Excadrill,Life Orb,Mold Breaker,Ground,Steel,Iron Head,Swords Dance,Earthquake,Rock Slide,true
+Sigilyph,Toxic Orb,Magic Guard,Psychic,Flying,Roost,Psycho Shift,Cosmic Power,Stored Power,false
+Diancie,Diancite,Clear Body,Rock,Fairy,Calm Mind,Hidden Power Fire,Earth Power,Moonblast,false
+Nidoqueen,Life Orb,Sheer Force,Poison,Ground,Sludge Wave,Ice Beam,Stealth Rock,Earth Power,false
+Simisear,Life Orb,Blaze,Fire,,Nasty Plot,Focus Blast,Grass Knot,Fire Blast,false
+Dragalge,Black Sludge,Adaptability,Poison,Dragon,Toxic Spikes,Draco Meteor,Sludge Wave,Focus Blast,false
+Talonflame,Sharp Beak,Gale Wings,Fire,Flying,Brave Bird,Roost,Will-O-Wisp,Flare Blitz,false
+Heliolisk,Choice Specs,Dry Skin,Electric,Normal,Hyper Voice,Dark Pulse,Thunderbolt,Hidden Power Ice,true
+Swalot,Black Sludge,Sticky Hold,Poison,,Pain Split,Yawn,Sludge Bomb,Earthquake,true
+Meloetta,Leftovers,Serene Grace,Normal,Psychic,Focus Blast,Psyshock,Calm Mind,Hyper Voice,true
+Conkeldurr,Flame Orb,Guts,Fighting,,Ice Punch,Bulk Up,Drain Punch,Knock Off,true
+Dusknoir,Leftovers,Pressure,Ghost,,Will-O-Wisp,Pain Split,Shadow Sneak,Ice Punch,true
+Aegislash,Life Orb,Stance Change,Steel,Ghost,Shadow Ball,Shadow Sneak,Flash Cannon,King's Shield,true
+Rotom-Mow,Choice Specs,Levitate,Electric,Grass,Hidden Power Fire,Leaf Storm,Thunderbolt,Volt Switch,false
+Manectric,Manectite,Lightning Rod,Electric,,Hidden Power Grass,Overheat,Thunderbolt,Volt Switch,false
+Shuckle,Leftovers,Sturdy,Bug,Rock,Toxic,Encore,Stealth Rock,Knock Off,false
+Celebi,Leftovers,Natural Cure,Psychic,Grass,Psychic,Hidden Power Fire,Thunder Wave,Giga Drain,false
+Yveltal,Leftovers,Dark Aura,Dark,Flying,Dark Pulse,Toxic,Sucker Punch,Roost,false
+Lumineon,Leftovers,Storm Drain,Water,,Ice Beam,Toxic,U-turn,Scald,false
+Furfrou-Kabuki,Leftovers,Fur Coat,Normal,,Return,Substitute,Toxic,Sucker Punch,true
+Kingdra,Life Orb,Swift Swim,Water,Dragon,Dragon Dance,Outrage,Waterfall,Rain Dance,true
+Nidoking,Life Orb,Sheer Force,Poison,Ground,Sludge Wave,Superpower,Fire Blast,Earth Power,true
+Mamoswine,Choice Band,Thick Fat,Ice,Ground,Icicle Crash,Ice Shard,Superpower,Earthquake,true
+Beautifly,Choice Scarf,Swarm,Bug,Flying,Hidden Power Fighting,Energy Ball,Psychic,Bug Buzz,true
+Omastar,White Herb,Shell Armor,Rock,Water,Earth Power,Shell Smash,Ice Beam,Hydro Pump,true
+Hydreigon,Life Orb,Levitate,Dark,Dragon,Roost,Superpower,Dark Pulse,Dragon Pulse,false
+Grumpig,Leftovers,Thick Fat,Psychic,,Heal Bell,Toxic,Psychic,Whirlwind,false
+Qwilfish,Black Sludge,Intimidate,Water,Poison,Taunt,Toxic Spikes,Spikes,Waterfall,false
+Dedenne,Petaya Berry,Cheek Pouch,Electric,Fairy,Substitute,Grass Knot,Hidden Power Ice,Thunderbolt,false
+Bisharp,Assault Vest,Defiant,Dark,Steel,Knock Off,Sucker Punch,Low Kick,Iron Head,false
+Gengar,Gengarite,Levitate,Ghost,Poison,Shadow Ball,Perish Song,Focus Blast,Protect,false
+Archeops,,Defeatist,Rock,Flying,Acrobatics,U-turn,Stone Edge,Endeavor,true
+Wailord,Choice Specs,Water Veil,Water,,Hidden Power Fire,Water Spout,Hydro Pump,Ice Beam,true
+Sharpedo,Sharpedonite,Speed Boost,Water,Dark,Waterfall,Protect,Ice Fang,Crunch,true
+Noivern,Leftovers,Infiltrator,Flying,Dragon,Boomburst,Draco Meteor,Taunt,U-turn,true
+Aegislash,Life Orb,Stance Change,Steel,Ghost,Flash Cannon,King's Shield,Shadow Ball,Shadow Sneak,true
+Chansey,Eviolite,Natural Cure,Normal,,Thunder Wave,Seismic Toss,Wish,Soft-Boiled,true
+Metagross,Weakness Policy,Clear Body,Steel,Psychic,Agility,Meteor Mash,Earthquake,Thunder Punch,false
+Latias,Leftovers,Levitate,Dragon,Psychic,Defog,Roost,Draco Meteor,Thunderbolt,false
+Phione,Assault Vest,Hydration,Water,,U-turn,Knock Off,Ice Beam,Scald,false
+Throh,Toxic Orb,Guts,Fighting,,Knock Off,Bulk Up,Ice Punch,Storm Throw,false
+Beautifly,Life Orb,Swarm,Bug,Flying,Energy Ball,Quiver Dance,Hidden Power Fighting,Bug Buzz,false
+Gengar,Gengarite,Levitate,Ghost,Poison,Disable,Shadow Ball,Protect,Destiny Bond,false
+Mewtwo,Leftovers,Pressure,Psychic,,Fire Blast,Calm Mind,Recover,Psystrike,true
+Beautifly,Life Orb,Swarm,Bug,Flying,Bug Buzz,Quiver Dance,Psychic,Energy Ball,true
+Kingdra,Life Orb,Swift Swim,Water,Dragon,Rain Dance,Waterfall,Outrage,Draco Meteor,true
+Altaria,Altarianite,Cloud Nine,Dragon,Flying,Earthquake,Dragon Dance,Return,Heal Bell,true
+Diggersby,Leftovers,Huge Power,Normal,Ground,Wild Charge,Agility,Earthquake,Swords Dance,true
+Miltank,Leftovers,Scrappy,Normal,,Earthquake,Curse,Body Slam,Milk Drink,true
+Gourgeist-Super,Leftovers,Insomnia,Ghost,Grass,Synthesis,Will-O-Wisp,Seed Bomb,Shadow Sneak,false
+Qwilfish,Black Sludge,Intimidate,Water,Poison,Spikes,Taunt,Destiny Bond,Waterfall,false
+Electivire,Expert Belt,Motor Drive,Electric,,Volt Switch,Cross Chop,Ice Punch,Wild Charge,false
+Sudowoodo,Leftovers,Rock Head,Rock,,Toxic,Wood Hammer,Stealth Rock,Stone Edge,false
+Pinsir,Pinsirite,Mold Breaker,Bug,,Earthquake,Return,Swords Dance,Close Combat,false
+Florges-Orange,Leftovers,Symbiosis,Fairy,,Toxic,Wish,Synthesis,Moonblast,false
+Cherrim,Focus Sash,Flower Gift,Grass,,Healing Wish,Energy Ball,Dazzling Gleam,Hidden Power Fire,true
+Mismagius,Life Orb,Levitate,Ghost,,Will-O-Wisp,Shadow Ball,Dazzling Gleam,Thunderbolt,true
+Genesect,Leftovers,Download,Bug,Steel,Shift Gear,U-turn,Ice Beam,Iron Head,true
+Sigilyph,Toxic Orb,Magic Guard,Psychic,Flying,Psycho Shift,Cosmic Power,Roost,Stored Power,true
+Jumpluff,Leftovers,Infiltrator,Grass,Flying,Toxic,Leech Seed,Encore,Seed Bomb,true
+Machamp,Choice Band,No Guard,Fighting,,Knock Off,Dynamic Punch,Bullet Punch,Heavy Slam,true
+Eelektross,Assault Vest,Levitate,Electric,,Superpower,Knock Off,U-turn,Thunderbolt,false
+Pidgeot,Pidgeotite,Tangled Feet,Normal,Flying,U-turn,Roost,Defog,Hurricane,false
+Regice,Weakness Policy,Clear Body,Ice,,Rock Polish,Focus Blast,Ice Beam,Thunderbolt,false
+Liepard,Leftovers,Prankster,Dark,,U-turn,Thunder Wave,Play Rough,Dark Pulse,false
+Machamp,Choice Band,No Guard,Fighting,,Bullet Punch,Dynamic Punch,Knock Off,Stone Edge,false
+Seaking,Life Orb,Lightning Rod,Water,,Waterfall,Ice Beam,Knock Off,Drill Run,false
+Grumpig,Focus Sash,Thick Fat,Psychic,,Heal Bell,Whirlwind,Psychic,Toxic,true
+Articuno,Leftovers,Pressure,Ice,Flying,Toxic,Freeze-Dry,Roost,Hurricane,true
+Rayquaza,Leftovers,Air Lock,Dragon,Flying,Dragon Claw,V-create,Dragon Dance,Earthquake,true
+Manectric,Manectite,Lightning Rod,Electric,,Hidden Power Ice,Volt Switch,Overheat,Thunderbolt,true
+Beartic,Choice Band,Swift Swim,Ice,,Aqua Jet,Icicle Crash,Stone Edge,Superpower,true
+Serperior,Leftovers,Contrary,Grass,,Dragon Pulse,Substitute,Glare,Leaf Storm,true
+Infernape,Expert Belt,Blaze,Fire,Fighting,Close Combat,Earthquake,Stone Edge,Fire Blast,false
+Aromatisse,Light Clay,Aroma Veil,Fairy,,Light Screen,Reflect,Aromatherapy,Moonblast,false
+Talonflame,Sharp Beak,Gale Wings,Fire,Flying,Flare Blitz,Swords Dance,Brave Bird,Roost,false
+Sableye,Leftovers,Prankster,Dark,Ghost,Foul Play,Toxic,Knock Off,Recover,false
+Deoxys,Life Orb,Pressure,Psychic,,Fire Punch,Taunt,Knock Off,Psycho Boost,false
+Latios,Latiosite,Levitate,Dragon,Psychic,Calm Mind,Roost,Draco Meteor,Hidden Power Fire,false
+Meganium,Leftovers,Overgrow,Grass,,Toxic,Light Screen,Dragon Tail,Giga Drain,true
+Gligar,Eviolite,Immunity,Ground,Flying,Earthquake,Stealth Rock,Toxic,Roost,true
+Musharna,Leftovers,Synchronize,Psychic,,Signal Beam,Calm Mind,Moonlight,Psychic,true
+Weezing,Black Sludge,Levitate,Poison,,Sludge Bomb,Protect,Fire Blast,Toxic Spikes,true
+Terrakion,Life Orb,Justified,Rock,Fighting,Swords Dance,Close Combat,Stone Edge,Earthquake,true
+Slaking,Choice Scarf,Truant,Normal,,Pursuit,Retaliate,Earthquake,Giga Impact,true
+Pikachu,Light Ball,Lightning Rod,Electric,,Hidden Power Ice,Volt Tackle,Volt Switch,Iron Tail,false
+Mothim,Life Orb,Tinted Lens,Bug,Flying,Quiver Dance,Bug Buzz,Energy Ball,Air Slash,false
+Banette,Banettite,Cursed Body,Ghost,,Will-O-Wisp,Destiny Bond,Sucker Punch,Shadow Claw,false
+Shiftry,Life Orb,Early Bird,Grass,Dark,Leaf Blade,Leaf Storm,Defog,Knock Off,false
+Zygarde,Choice Band,Aura Break,Dragon,Ground,Earthquake,Stone Edge,Outrage,Extreme Speed,false
+Flareon,Toxic Orb,Guts,Fire,,Superpower,Flare Blitz,Quick Attack,Facade,false
+Scolipede,Life Orb,Speed Boost,Bug,Poison,Poison Jab,Swords Dance,Megahorn,Rock Slide,true
+Golurk,Life Orb,Iron Fist,Ground,Ghost,Rock Polish,Earthquake,Shadow Punch,Ice Punch,true
+Marowak,Thick Club,Rock Head,Ground,,Knock Off,Substitute,Bonemerang,Double-Edge,true
+Delibird,Leftovers,Insomnia,Ice,Flying,Rapid Spin,Icy Wind,Destiny Bond,Freeze-Dry,true
+Ludicolo,Life Orb,Swift Swim,Water,Grass,Giga Drain,Ice Beam,Rain Dance,Hydro Pump,true
+Greninja,Expert Belt,Protean,Water,Dark,U-turn,Gunk Shot,Hydro Pump,Ice Beam,true
+Nidoqueen,Life Orb,Sheer Force,Poison,Ground,Sludge Wave,Ice Beam,Earth Power,Fire Blast,false
+Azelf,Leftovers,Levitate,Psychic,,Taunt,Nasty Plot,Fire Blast,Psyshock,false
+Octillery,Choice Specs,Sniper,Water,,Ice Beam,Energy Ball,Fire Blast,Scald,false
+Dragalge,Black Sludge,Adaptability,Poison,Dragon,Draco Meteor,Toxic Spikes,Scald,Sludge Wave,false
+Rhyperior,Leftovers,Solid Rock,Ground,Rock,Stealth Rock,Dragon Tail,Earthquake,Megahorn,false
+Hawlucha,Sitrus Berry,Unburden,Fighting,Flying,High Jump Kick,Roost,Swords Dance,Acrobatics,false
+Arcanine,Leftovers,Intimidate,Fire,,Toxic,Morning Sun,Wild Charge,Flare Blitz,true
+Kingler,Life Orb,Hyper Cutter,Water,,Swords Dance,Superpower,X-Scissor,Crabhammer,true
+Greninja,Leftovers,Protean,Water,Dark,Ice Beam,Hydro Pump,Spikes,Toxic Spikes,true
+Abomasnow,Abomasite,Snow Warning,Grass,Ice,Earthquake,Hidden Power Fire,Blizzard,Giga Drain,true
+Hitmonchan,Life Orb,Iron Fist,Fighting,,Drain Punch,Bulk Up,Ice Punch,Fire Punch,true
+Meowstic,Light Clay,Prankster,Psychic,,Psychic,Yawn,Light Screen,Reflect,true
+Meloetta,Assault Vest,Serene Grace,Normal,Psychic,Relic Song,Close Combat,Knock Off,Return,false
+Minun,Leftovers,Volt Absorb,Electric,,Thunderbolt,Substitute,Nasty Plot,Hidden Power Ice,false
+Crobat,Black Sludge,Infiltrator,Poison,Flying,Roost,Toxic,Taunt,Brave Bird,false
+Venomoth,Black Sludge,Tinted Lens,Bug,Poison,Sludge Bomb,Bug Buzz,Sleep Powder,Quiver Dance,false
+Torkoal,White Herb,White Smoke,Fire,,Yawn,Lava Plume,Shell Smash,Earth Power,false
+Huntail,White Herb,Water Veil,Water,,Shell Smash,Sucker Punch,Ice Beam,Waterfall,false
