@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "main": "node app.js"
+    "main": "node app.js",
+    "hi": "node hello.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "node-cleanup": "^2.1.2",
     "pokemon-showdown": "^0.11.7"
   }
 }
