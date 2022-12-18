@@ -45,12 +45,77 @@ function pickIfOnlyOption(activeP, ownTeam, otherActiveP, request) {
 }
 
 
-function powerUpIfAtHighHp(){
+function powerUpIfAtHighHp(activeP, ownTeam, otherActiveP, request){
+    //TODO replace activeP
+    activeP = ownTeam.filter(p=>p.isActive)[0]
+    const boosts = activeP.boosts
+    for(let stat in boosts){
+        if(boosts[stat]>0){
+            return null
+        }
+    }
+    const boostingMovesIds = ["sworddance", "shellsmash", "dragondance", "geomancy", "nastyplot", "calmmind", "quiverdance", "cosmicpower"]
+    const leftHp= parseInt(activeP.getHealth().shared.split("/")[0])
+    if(leftHp<80){
+        return null
+    }
+    const activeMovesDex = activeP.baseMoveSlots.map(m=> pkm.Dex.getActiveMove(m.id))
+    for(let i=0 ;i< activeMovesDex.length; i++){
+        const ac = activeMovesDex[i]
+        if(ac.pp === 0 || activeP.baseMoveSlots[i].disabled){
+            continue
+        }
+
+        if(boostingMovesIds.includes(ac.id)){
+            return {"type": "attack", "value": (i+1)}
+
+        }
+    }
     return null
 }
 
-function swapIfNoEffectiveMoves(){
-    return null
+function swapIfNoEffectiveMoves(activeP, ownTeam, otherActiveP, request){
+    activeP = ownTeam.filter(p=>p.isActive)[0]
+    otherActiveP = otherActiveP[0]
+
+    if(activeP.trapped){
+        return null
+    }
+    const MIN_POW = 40
+    const powers = activeP.moveSlots.map(m=>computeMoveAveragePower(pkm.Dex.getActiveMove(m.id), activeP, otherActiveP))
+    if(powers.filter(p=>p>MIN_POW).length>0){
+        return null
+    }
+
+    let best_pow = 0
+    let best_idx = -1
+    for(let i=0; i < ownTeam.length; i++){
+        const p = ownTeam[i]
+        if(p.isActive){
+            continue
+        }
+
+        const leftHp= parseInt(p.getHealth().shared.split("/")[0])
+        if(leftHp<70){
+            continue
+        }
+        const powers = p.moveSlots.map(m=>computeMoveAveragePower(pkm.Dex.getActiveMove(m.id), activeP, otherActiveP))
+        const hp = powers.sort((a,b)=>b-a)[0]
+        if(hp > best_pow && hp > MIN_POW){
+            best_pow = hp
+            best_idx = i
+        }
+
+    }
+    if(best_idx === -1){
+        return null
+    }
+
+    if(best_pow <= MIN_POW*2){
+        return null
+    }
+
+    return {"type": "swap", "value": (best_idx+1)}
 }
 
 function pickRandomMove(activeP, ownTeam, otherActiveP, request) {
@@ -69,17 +134,32 @@ function pickRandomMove(activeP, ownTeam, otherActiveP, request) {
     throw new Error("nm")
 }
 
-
-function pickEffectiveMove(activeP, ownTeam, otherActiveP, request) {
-    const activeMoves = activeP.moves;
-    let bestPower = 0
-    let bestIdx = -1
+function computeMoveAveragePower(activeMoveDex, activePokemon, otherActivePokemon){
     const effToMultiplier = new Map();
     effToMultiplier.set(-2, 0.25)
     effToMultiplier.set(-1, 0.5)
     effToMultiplier.set(0, 1)
     effToMultiplier.set(1, 2)
     effToMultiplier.set(2, 4)
+    const activeTypes = activePokemon.baseSpecies.types
+    const moveType = activeMoveDex.type
+    const movePower = activeMoveDex.basePower
+    const isStab = activeTypes.includes(moveType)
+    const eff = pkm.Dex.getEffectiveness(moveType, otherActivePokemon.baseSpecies.types)
+    const moveAccuracy = activeMoveDex.accuracy
+    let multiplier = effToMultiplier.get(eff)
+    if(isStab){
+        multiplier = multiplier * 1.5
+    }
+    const actualMovePower = multiplier * movePower
+    const actualAverageMovePower = actualMovePower * moveAccuracy/100
+    return actualAverageMovePower
+}
+
+function pickEffectiveMove(activeP, ownTeam, otherActiveP, request) {
+    const activeMoves = activeP.moves;
+    let bestPower = 0
+    let bestIdx = -1
 
     for (let i = 0; i < activeMoves.length; i++) {
         const activeMove = activeMoves[i]
@@ -99,21 +179,11 @@ function pickEffectiveMove(activeP, ownTeam, otherActiveP, request) {
             continue
         }
 
-        const activeTypes = ownTeam.filter(p=>p.isActive)[0].baseSpecies.types
-        const moveType = activeMoveDex.type
-        const movePower = activeMoveDex.basePower
-        const isStab = activeTypes.includes(moveType)
-        const eff = pkm.Dex.getEffectiveness(moveType, otherActiveP[0].baseSpecies.types)
-        const moveAccuracy = activeMoveDex.accuracy
-        let multiplier = effToMultiplier.get(eff)
-        if(isStab){
-            multiplier = multiplier * 1.5
-        }
-        const actualMovePower = multiplier * movePower
-        const actualAverageMovePower = actualMovePower * moveAccuracy/100
+
+        const actualAverageMovePower = computeMoveAveragePower(activeMoveDex, ownTeam.filter(p=>p.isActive)[0], otherActiveP[0])
         if (actualAverageMovePower > bestPower) {
             bestIdx = i
-            bestPower = actualMovePower
+            bestPower = actualAverageMovePower
         }
     }
     if (bestIdx > -1) {
@@ -146,7 +216,7 @@ async function doBattle(log=false) {
         name: "Alice",
         team: pkm.Teams.pack(team1),
         id: "p1",
-        strategy: makeStrategyHandler([pickEffectiveMove], pickRandomMove, "best")
+        strategy: makeStrategyHandler([powerUpIfAtHighHp, pickEffectiveMove], pickRandomMove, "best")
     }
     const p2 = {
         name: "Bob",
@@ -223,6 +293,10 @@ async function doBattle(log=false) {
 
                 const move = strategyHandler(activeP, ownTeam, otherActiveP, request)
 
+                if (move.type === "switch"){
+                    const command = `>${playerId} switch ${move.value}`
+                }
+
                 if (move.type === "attack") {
                     const command = `>${playerId} move ${move.value}`
                     stream.write(command);
@@ -235,6 +309,12 @@ async function doBattle(log=false) {
 
                         console.log(command)
                     }
+                } else if (move.type === "swap"){
+                    const command = `>${playerId} switch ${move.value}`
+                    if(log) {
+                        console.log(command)
+                    }
+                    stream.write(command);
                 } else {
                     throw new Error("Unknown action")
                 }
