@@ -1,0 +1,225 @@
+{
+  "m": {},
+  "baseSpecies": "[Species:zygarde10]",
+  "species": "[Species:zygarde10]",
+  "speciesState": {
+    "id": "zygarde10"
+  },
+  "gender": "",
+  "gigantamax": false,
+  "moveSlots": [
+    {
+      "move": "Iron Tail",
+      "id": "irontail",
+      "pp": 24,
+      "maxpp": 24,
+      "target": "normal",
+      "disabled": false,
+      "disabledSource": "",
+      "used": false
+    },
+    {
+      "move": "Outrage",
+      "id": "outrage",
+      "pp": 15,
+      "maxpp": 16,
+      "target": "randomNormal",
+      "disabled": false,
+      "disabledSource": "",
+      "used": true
+    },
+    {
+      "move": "Coil",
+      "id": "coil",
+      "pp": 31,
+      "maxpp": 32,
+      "target": "self",
+      "disabled": false,
+      "disabledSource": "",
+      "used": true
+    },
+    {
+      "move": "Thousand Arrows",
+      "id": "thousandarrows",
+      "pp": 16,
+      "maxpp": 16,
+      "target": "allAdjacentFoes",
+      "disabled": false,
+      "disabledSource": "",
+      "used": false
+    }
+  ],
+  "position": 0,
+  "details": "Zygarde-10%, L82",
+  "status": "",
+  "statusState": {},
+  "volatiles": {
+    "lockedmove": {
+      "id": "lockedmove",
+      "target": "[Pokemon:p2a]",
+      "source": "[Pokemon:p2a]",
+      "sourceSlot": "p2a",
+      "sourceEffect": {
+        "hit": 1,
+        "totalDamage": 24,
+        "hasAuraBreak": true,
+        "moveHitData": {
+          "p1a": {
+            "crit": false,
+            "typeMod": 0,
+            "zBrokeProtect": false
+          }
+        },
+        "move": "[Move:outrage]"
+      },
+      "duration": 1,
+      "trueDuration": 2,
+      "move": "outrage"
+    }
+  },
+  "showCure": false,
+  "hpType": "Dark",
+  "hpPower": 60,
+  "baseHpType": "Dark",
+  "baseHpPower": 60,
+  "baseStoredStats": {
+    "atk": 211,
+    "def": 164,
+    "spa": 147,
+    "spd": 187,
+    "spe": 236,
+    "hp": 223
+  },
+  "storedStats": {
+    "atk": 211,
+    "def": 164,
+    "spa": 147,
+    "spd": 187,
+    "spe": 236
+  },
+  "boosts": {
+    "atk": 1,
+    "def": 1,
+    "spa": 0,
+    "spd": 0,
+    "spe": 0,
+    "accuracy": 1,
+    "evasion": 0
+  },
+  "baseAbility": "aurabreak",
+  "ability": "aurabreak",
+  "abilityState": {
+    "id": "aurabreak",
+    "target": "[Pokemon:p2a]"
+  },
+  "item": "lifeorb",
+  "itemState": {
+    "id": "lifeorb",
+    "target": "[Pokemon:p2a]"
+  },
+  "lastItem": "",
+  "usedItemThisTurn": false,
+  "ateBerry": false,
+  "trapped": true,
+  "maybeTrapped": false,
+  "maybeDisabled": false,
+  "illusion": null,
+  "transformed": false,
+  "fainted": false,
+  "faintQueued": false,
+  "subFainted": null,
+  "types": [
+    "Dragon",
+    "Ground"
+  ],
+  "addedType": "",
+  "knownType": true,
+  "apparentType": "Dragon/Ground",
+  "switchFlag": false,
+  "forceSwitchFlag": false,
+  "skipBeforeSwitchOutEventFlag": false,
+  "draggedIn": null,
+  "newlySwitched": false,
+  "beingCalledBack": false,
+  "lastMove": {
+    "hit": 1,
+    "totalDamage": 24,
+    "hasAuraBreak": true,
+    "moveHitData": {
+      "p1a": {
+        "crit": false,
+        "typeMod": 0,
+        "zBrokeProtect": false
+      }
+    },
+    "move": "[Move:outrage]"
+  },
+  "lastMoveUsed": {
+    "hit": 1,
+    "totalDamage": 24,
+    "hasAuraBreak": true,
+    "moveHitData": {
+      "p1a": {
+        "crit": false,
+        "typeMod": 0,
+        "zBrokeProtect": false
+      }
+    },
+    "move": "[Move:outrage]"
+  },
+  "moveThisTurn": "",
+  "statsRaisedThisTurn": false,
+  "statsLoweredThisTurn": false,
+  "hurtThisTurn": null,
+  "lastDamage": 24,
+  "attackedBy": [],
+  "isActive": true,
+  "activeTurns": 3,
+  "activeMoveActions": 2,
+  "previouslySwitchedIn": 1,
+  "truantTurn": false,
+  "isStarted": true,
+  "duringMove": false,
+  "weighthg": 335,
+  "speed": 236,
+  "abilityOrder": 5,
+  "canMegaEvo": null,
+  "canUltraBurst": null,
+  "canGigantamax": null,
+  "maxhp": 223,
+  "baseMaxhp": 223,
+  "hp": 55,
+  "moveLastTurnResult": true,
+  "lastMoveTargetLoc": 1,
+  "set": {
+    "name": "Zygarde",
+    "species": "Zygarde-10%",
+    "item": "Life Orb",
+    "ability": "Aura Break",
+    "moves": [
+      "Iron Tail",
+      "Outrage",
+      "Coil",
+      "Thousand Arrows"
+    ],
+    "nature": "",
+    "evs": {
+      "hp": 85,
+      "atk": 85,
+      "def": 85,
+      "spa": 85,
+      "spd": 85,
+      "spe": 85
+    },
+    "gender": "N",
+    "level": 82,
+    "ivs": {
+      "hp": 31,
+      "atk": 31,
+      "def": 31,
+      "spa": 31,
+      "spd": 31,
+      "spe": 31
+    }
+  }
+}

@@ -6,13 +6,23 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "main": "node app.js",
-    "hi": "node hello.js"
+    "newMain": "ts-node src/newApp.ts",
+    "hi": "node hello.js",
+    "postinstall": "npm run typings",
+    "typings": "typings install"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "lodash": "^4.17.21",
     "node-cleanup": "^2.1.2",
     "pokemon-showdown": "^0.11.7"
+  },
+  "devDependencies": {
+    "@types/node": "^18.14.0"
+  },
+  "compilerOptions": {
+    "module": "CommonJS"
   }
 }

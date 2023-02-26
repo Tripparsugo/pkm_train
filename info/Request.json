@@ -1,0 +1,206 @@
+{
+  "active": [
+    {
+      "moves": [
+        {
+          "move": "Focus Blast",
+          "id": "focusblast",
+          "pp": 8,
+          "maxpp": 8,
+          "target": "normal",
+          "disabled": false
+        },
+        {
+          "move": "Bug Buzz",
+          "id": "bugbuzz",
+          "pp": 16,
+          "maxpp": 16,
+          "target": "normal",
+          "disabled": false
+        },
+        {
+          "move": "Toxic",
+          "id": "toxic",
+          "pp": 16,
+          "maxpp": 16,
+          "target": "normal",
+          "disabled": false
+        },
+        {
+          "move": "Energy Ball",
+          "id": "energyball",
+          "pp": 16,
+          "maxpp": 16,
+          "target": "normal",
+          "disabled": false
+        }
+      ],
+      "canDynamax": true,
+      "maxMoves": {
+        "maxMoves": [
+          {
+            "move": "maxknuckle",
+            "target": "adjacentFoe"
+          },
+          {
+            "move": "maxflutterby",
+            "target": "adjacentFoe"
+          },
+          {
+            "move": "maxguard",
+            "target": "self"
+          },
+          {
+            "move": "maxovergrowth",
+            "target": "adjacentFoe"
+          }
+        ]
+      }
+    }
+  ],
+  "side": {
+    "name": "Alice",
+    "id": "p1",
+    "pokemon": [
+      {
+        "ident": "p1: Accelgor",
+        "details": "Accelgor, L86, M",
+        "condition": "278/278",
+        "active": true,
+        "stats": {
+          "atk": 125,
+          "def": 118,
+          "spa": 221,
+          "spd": 152,
+          "spe": 299
+        },
+        "moves": [
+          "focusblast",
+          "bugbuzz",
+          "toxic",
+          "energyball"
+        ],
+        "baseAbility": "stickyhold",
+        "item": "focussash",
+        "pokeball": "pokeball",
+        "ability": "stickyhold"
+      },
+      {
+        "ident": "p1: Talonflame",
+        "details": "Talonflame, L80, F",
+        "condition": "256/256",
+        "active": false,
+        "stats": {
+          "atk": 176,
+          "def": 160,
+          "spa": 165,
+          "spd": 157,
+          "spe": 248
+        },
+        "moves": [
+          "roost",
+          "flareblitz",
+          "swordsdance",
+          "bravebird"
+        ],
+        "baseAbility": "galewings",
+        "item": "heavydutyboots",
+        "pokeball": "pokeball",
+        "ability": "galewings"
+      },
+      {
+        "ident": "p1: Toxicroak",
+        "details": "Toxicroak, L84, F",
+        "condition": "277/277",
+        "active": false,
+        "stats": {
+          "atk": 226,
+          "def": 157,
+          "spa": 193,
+          "spd": 157,
+          "spe": 191
+        },
+        "moves": [
+          "swordsdance",
+          "substitute",
+          "drainpunch",
+          "gunkshot"
+        ],
+        "baseAbility": "dryskin",
+        "item": "blacksludge",
+        "pokeball": "pokeball",
+        "ability": "dryskin"
+      },
+      {
+        "ident": "p1: Buzzwole",
+        "details": "Buzzwole, L77",
+        "condition": "291/291",
+        "active": false,
+        "stats": {
+          "atk": 259,
+          "def": 259,
+          "spa": 126,
+          "spd": 126,
+          "spe": 166
+        },
+        "moves": [
+          "stoneedge",
+          "leechlife",
+          "closecombat",
+          "dualwingbeat"
+        ],
+        "baseAbility": "beastboost",
+        "item": "choiceband",
+        "pokeball": "pokeball",
+        "ability": "beastboost"
+      },
+      {
+        "ident": "p1: Nidoking",
+        "details": "Nidoking, L82, M",
+        "condition": "267/267",
+        "active": false,
+        "stats": {
+          "atk": 172,
+          "def": 173,
+          "spa": 187,
+          "spd": 170,
+          "spe": 187
+        },
+        "moves": [
+          "sludgewave",
+          "substitute",
+          "earthpower",
+          "icebeam"
+        ],
+        "baseAbility": "sheerforce",
+        "item": "lifeorb",
+        "pokeball": "pokeball",
+        "ability": "sheerforce"
+      },
+      {
+        "ident": "p1: Noivern",
+        "details": "Noivern, L82, F",
+        "condition": "274/274",
+        "active": false,
+        "stats": {
+          "atk": 119,
+          "def": 178,
+          "spa": 206,
+          "spd": 178,
+          "spe": 249
+        },
+        "moves": [
+          "roost",
+          "hurricane",
+          "dracometeor",
+          "flamethrower"
+        ],
+        "baseAbility": "infiltrator",
+        "item": "heavydutyboots",
+        "pokeball": "pokeball",
+        "ability": "infiltrator"
+      }
+    ]
+  },
+  "noCancel": true
+}

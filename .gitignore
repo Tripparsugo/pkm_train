@@ -2,4 +2,8 @@
 node_modules
 **/venv
 **/virtualenv
-graphs/data.csv
+trash/data.csv
+garb
+graphs/figs
+trash/*
+trash

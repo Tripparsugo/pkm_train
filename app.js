@@ -4,7 +4,7 @@ pkm.Dex.includeFormats()
 
 pkm.Dex.includeMods()
 
-const format = pkm.Dex.formats.get("gen6randombattle")
+const format = pkm.Dex.formats.get("gen8randombattle")
 pkm.Dex.forFormat(format)
 
 function timeout(ms) {
@@ -45,77 +45,78 @@ function pickIfOnlyOption(activeP, ownTeam, otherActiveP, request) {
 }
 
 
-function powerUpIfAtHighHp(activeP, ownTeam, otherActiveP, request){
+function powerUpIfAtHighHp(activeP, ownTeam, otherActiveP, request) {
     //TODO replace activeP
-    activeP = ownTeam.filter(p=>p.isActive)[0]
+    activeP = ownTeam.filter(p => p.isActive)[0]
     const boosts = activeP.boosts
-    for(let stat in boosts){
-        if(boosts[stat]>0){
+    for (let stat in boosts) {
+        if (boosts[stat] > 0) {
             return null
         }
     }
     const boostingMovesIds = ["sworddance", "shellsmash", "dragondance", "geomancy", "nastyplot", "calmmind", "quiverdance", "cosmicpower"]
-    const leftHp= parseInt(activeP.getHealth().shared.split("/")[0])
-    if(leftHp<80){
+    const leftHp = parseInt(activeP.getHealth().shared.split("/")[0])
+    if (leftHp < 80) {
         return null
     }
-    const activeMovesDex = activeP.baseMoveSlots.map(m=> pkm.Dex.getActiveMove(m.id))
-    for(let i=0 ;i< activeMovesDex.length; i++){
+    const activeMovesDex = activeP.baseMoveSlots.map(m => pkm.Dex.getActiveMove(m.id))
+    for (let i = 0; i < activeMovesDex.length; i++) {
         const ac = activeMovesDex[i]
-        if(ac.pp === 0 || activeP.baseMoveSlots[i].disabled){
+        if (ac.pp === 0 || activeP.baseMoveSlots[i].disabled) {
             continue
         }
 
-        if(boostingMovesIds.includes(ac.id)){
-            return {"type": "attack", "value": (i+1)}
+        if (boostingMovesIds.includes(ac.id)) {
+            return {"type": "attack", "value": (i + 1)}
 
         }
+
     }
     return null
 }
 
-function swapIfNoEffectiveMoves(activeP, ownTeam, otherActiveP, request){
-    activeP = ownTeam.filter(p=>p.isActive)[0]
+function swapIfNoEffectiveMoves(activeP, ownTeam, otherActiveP, request) {
+    activeP = ownTeam.filter(p => p.isActive)[0]
     otherActiveP = otherActiveP[0]
 
-    if(activeP.trapped){
+    if (activeP.trapped) {
         return null
     }
     const MIN_POW = 40
-    const powers = activeP.moveSlots.map(m=>computeMoveAveragePower(pkm.Dex.getActiveMove(m.id), activeP, otherActiveP))
-    if(powers.filter(p=>p>MIN_POW).length>0){
+    const powers = activeP.moveSlots.map(m => computeMoveAveragePower(pkm.Dex.getActiveMove(m.id), activeP, otherActiveP))
+    if (powers.filter(p => p > MIN_POW).length > 0) {
         return null
     }
 
     let best_pow = 0
     let best_idx = -1
-    for(let i=0; i < ownTeam.length; i++){
+    for (let i = 0; i < ownTeam.length; i++) {
         const p = ownTeam[i]
-        if(p.isActive){
+        if (p.isActive) {
             continue
         }
 
-        const leftHp= parseInt(p.getHealth().shared.split("/")[0])
-        if(leftHp<70){
+        const leftHp = parseInt(p.getHealth().shared.split("/")[0])
+        if (leftHp < 70) {
             continue
         }
-        const powers = p.moveSlots.map(m=>computeMoveAveragePower(pkm.Dex.getActiveMove(m.id), activeP, otherActiveP))
-        const hp = powers.sort((a,b)=>b-a)[0]
-        if(hp > best_pow && hp > MIN_POW){
+        const powers = p.moveSlots.map(m => computeMoveAveragePower(pkm.Dex.getActiveMove(m.id), activeP, otherActiveP))
+        const hp = powers.sort((a, b) => b - a)[0]
+        if (hp > best_pow && hp > MIN_POW) {
             best_pow = hp
             best_idx = i
         }
 
     }
-    if(best_idx === -1){
+    if (best_idx === -1) {
         return null
     }
 
-    if(best_pow <= MIN_POW*2){
+    if (best_pow <= MIN_POW * 2) {
         return null
     }
 
-    return {"type": "swap", "value": (best_idx+1)}
+    return {"type": "swap", "value": (best_idx + 1)}
 }
 
 function pickRandomMove(activeP, ownTeam, otherActiveP, request) {
@@ -134,7 +135,7 @@ function pickRandomMove(activeP, ownTeam, otherActiveP, request) {
     throw new Error("nm")
 }
 
-function computeMoveAveragePower(activeMoveDex, activePokemon, otherActivePokemon){
+function computeMoveAveragePower(activeMoveDex, activePokemon, otherActivePokemon) {
     const effToMultiplier = new Map();
     effToMultiplier.set(-2, 0.25)
     effToMultiplier.set(-1, 0.5)
@@ -148,11 +149,11 @@ function computeMoveAveragePower(activeMoveDex, activePokemon, otherActivePokemo
     const eff = pkm.Dex.getEffectiveness(moveType, otherActivePokemon.baseSpecies.types)
     const moveAccuracy = activeMoveDex.accuracy
     let multiplier = effToMultiplier.get(eff)
-    if(isStab){
+    if (isStab) {
         multiplier = multiplier * 1.5
     }
     const actualMovePower = multiplier * movePower
-    const actualAverageMovePower = actualMovePower * moveAccuracy/100
+    const actualAverageMovePower = actualMovePower * moveAccuracy / 100
     return actualAverageMovePower
 }
 
@@ -171,7 +172,7 @@ function pickEffectiveMove(activeP, ownTeam, otherActiveP, request) {
             continue
         }
 
-        if (activeMoveDex.basePower === 0){
+        if (activeMoveDex.basePower === 0) {
             continue
         }
 
@@ -180,7 +181,7 @@ function pickEffectiveMove(activeP, ownTeam, otherActiveP, request) {
         }
 
 
-        const actualAverageMovePower = computeMoveAveragePower(activeMoveDex, ownTeam.filter(p=>p.isActive)[0], otherActiveP[0])
+        const actualAverageMovePower = computeMoveAveragePower(activeMoveDex, ownTeam.filter(p => p.isActive)[0], otherActiveP[0])
         if (actualAverageMovePower > bestPower) {
             bestIdx = i
             bestPower = actualAverageMovePower
@@ -209,7 +210,7 @@ function makeStrategyHandler(strategies, fallbackStrategy, strategyName) {
 }
 
 
-async function doBattle(log=false) {
+async function doBattle(log = false) {
     const team1 = pkm.Teams.generate(format)
     const team2 = pkm.Teams.generate(format)
     const p1 = {
@@ -223,8 +224,9 @@ async function doBattle(log=false) {
         team: pkm.Teams.pack(team2),
         id: "p2",
         strategy: makeStrategyHandler([], pickRandomMove, "random")
+        // strategy: makeStrategyHandler([], pickRandomMove, "random")
     }
-    const players = [p1,p2]
+    const players = [p1, p2]
     const stream = new pkm.BattleStream();
     const formatInput = {formatid: "${format.id}"}
     stream.write(`>start ${JSON.stringify(formatInput)}`);
@@ -242,7 +244,7 @@ async function doBattle(log=false) {
             }
         }
         // console.log("@@2")
-        if(log) {
+        if (log) {
             // console.log(output)
         }
         for (let tmp of output.split("\n")) {
@@ -253,7 +255,7 @@ async function doBattle(log=false) {
             if (tmp.startsWith("|win|")) {
                 const winnerName = tmp.substring("|win|".length)
                 const winnerPlayer = players.filter(p => p.name === winnerName)[0]
-                if(log){
+                if (log) {
                     console.log(winnerName + " won")
                 }
                 const loserPlayer = players.filter(p => p.name !== winnerName)[0]
@@ -267,7 +269,7 @@ async function doBattle(log=false) {
             if (tmp.startsWith("|request|")) {
                 const request = JSON.parse(tmp.substring("|request".length + 1))
                 const playerId = request.side.id;
-                const player = players.filter( p=>p.id===playerId)[0]
+                const player = players.filter(p => p.id === playerId)[0]
 
                 if (request.wait) {
                     continue
@@ -277,7 +279,7 @@ async function doBattle(log=false) {
                         let p = request.side.pokemon[i]
                         if (!p.active && p.condition !== "0 fnt") {
                             const command = `>${playerId} switch ${i + 1}`
-                            if(log) {
+                            if (log) {
                                 console.log(command)
                             }
                             stream.write(command);
@@ -287,31 +289,41 @@ async function doBattle(log=false) {
                     continue
                 }
                 const activeP = request.active[0]
+
                 const otherActiveP = stream.battle.sides[0].id === playerId ? stream.battle.sides[1].active : stream.battle.sides[0].active
+                const t = stream.battle.sides[0].id === playerId ? stream.battle.sides[0].active : stream.battle.sides[1].active
                 const ownTeam = stream.battle.sides[0].id === playerId ? stream.battle.sides[0].pokemon : stream.battle.sides[1].pokemon
+                const otherTeam = stream.battle.sides[0].id === playerId ? stream.battle.sides[1].pokemon : stream.battle.sides[0].pokemon
+                if(activeP.moves.length===1){
+                    //TODO rm; for debug
+                    console.log("@@@@")
+                }
+                if(otherActiveP[0].baseSpecies.name==="Zoroark"){
+                    console.log("@@@@")
+                }
                 const {strategyHandler, strategyName} = player.strategy
 
                 const move = strategyHandler(activeP, ownTeam, otherActiveP, request)
 
-                if (move.type === "switch"){
+                if (move.type === "switch") {
                     const command = `>${playerId} switch ${move.value}`
                 }
 
                 if (move.type === "attack") {
                     const command = `>${playerId} move ${move.value}`
                     stream.write(command);
-                    if(log) {
-                        const availableMoves = activeP.moves.filter(m=>m.pp>0 && m.disabled === false).map(m=>m.move)
-                        console.log("active pkm: " + request.side.pokemon.filter(p=>p.active)[0].details)
+                    if (log) {
+                        const availableMoves = activeP.moves.filter(m => m.pp > 0 && m.disabled === false).map(m => m.move)
+                        console.log("active pkm: " + request.side.pokemon.filter(p => p.active)[0].details)
                         console.log("available moves: " + availableMoves)
                         console.log("opposing pkmn: " + otherActiveP)
-                        console.log("picked move: " + availableMoves[move.value -1])
+                        console.log("picked move: " + availableMoves[move.value - 1])
 
                         console.log(command)
                     }
-                } else if (move.type === "swap"){
+                } else if (move.type === "swap") {
                     const command = `>${playerId} switch ${move.value}`
-                    if(log) {
+                    if (log) {
                         console.log(command)
                     }
                     stream.write(command);
@@ -357,12 +369,18 @@ function toTeamData(team, won, strategy) {
     return ds
 }
 
-const LOG = false
+const LOG = true
+
 async function doBattles(n) {
     let ds = []
     for (let i = 0; i < n; i++) {
+        let b = null
         console.log(`BATTLE: #${i + 1}/${n}`)
-        const b = await doBattle(LOG)
+        try {
+            b = await doBattle(LOG)
+        } catch (e) {
+            console.log(e)
+        }
         if (!b) {
             continue
         }
@@ -373,13 +391,13 @@ async function doBattles(n) {
     return ds
 }
 
-
-doBattles(500).then(r => {
-    const content = convertToCSV(r)
+const BATTLES = 100
+doBattles(BATTLES).then(r => {
     try {
-        fs.writeFileSync('./data.csv', content);
+        const content = convertToCSV(r)
+        fs.writeFileSync('./tmp.csv', content);
     } catch (err) {
-        console.error("here" + err);
+        // console.error("here" + err);
     }
     console.log("Done")
 })
