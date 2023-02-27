@@ -31,8 +31,12 @@ class ConcretePlayer implements Player{
     }
 
     pickMove(battleInfo: BattleInfo, request: any): PlayerAction {
-        const evaluation = this.actionEvaluator.evaluateMoves(battleInfo, makeInitialActionEvaluation(battleInfo, request))
-        const action = this.actionPicker.pickMove(evaluation)
+        const initialEvaluation = makeInitialActionEvaluation(battleInfo, request)
+        const evaluations = this.actionEvaluator.evaluateMoves(battleInfo, initialEvaluation)
+        if(evaluations.length===0){
+            // console.log("ff")
+        }
+        const action = this.actionPicker.pickMove(evaluations)
         return action
     }
 }

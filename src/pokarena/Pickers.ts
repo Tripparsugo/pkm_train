@@ -24,6 +24,10 @@ class RandomPicker implements ActionPicker {
     readonly pickStrategy: string = "random";
     pickMove(moveEvaluations: ActionEvaluation[]): PlayerAction {
         const i = Math.floor(Math.random() * moveEvaluations.length)
+        //TypeError: Cannot read properties of undefined (reading 'playerAction') TODO
+        if(!moveEvaluations[i]){
+            // console.log("")
+        }
         return moveEvaluations[i].playerAction
     }
 

@@ -10,7 +10,7 @@ interface Arena {
 
 type ActionEvaluation = {playerAction: PlayerAction, evaluation: number}
 
-type PlayerAction = { readonly type: MoveType, moveTarget?: Move , swapTarget?: Pokemon}
+type PlayerAction = { readonly type: MoveType, moveTarget?: string , swapTarget?: string}
 
 type StreamPlayer = { name: string, id: string, team: string }
 

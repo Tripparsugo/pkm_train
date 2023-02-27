@@ -17,9 +17,11 @@ class Arena {
     private hasFinished: boolean;
     private readonly log: boolean;
     private battleRecord: BattleRecord;
+    readonly battleLog:  string[];
 
 
     constructor(player1: Player, player2: Player, log: boolean) {
+        this.battleLog = []
         this.player1 = player1;
         this.player1.id = "p1"
         this.player2 = player2;
@@ -62,7 +64,7 @@ class Arena {
             }
             const species = p.species
             if(!species.randomBattleMoves){
-                console.log("")
+                // console.log("")
             }
             const potentialMoves =  species?.randomBattleMoves?.map(m=>Dex.getActiveMove(m))?? []
             const knownMoveSlots = p.moveSlots.filter(ms => ms.used)
@@ -105,11 +107,10 @@ class Arena {
             case MoveType.ATTACK:
                 i = 0
                 const activeMoves = request.active[0].moves
-                // TODO fix to while(true)
                 while (true) {
-                    if(!activeMoves[i]){
-                        console.log("@" + activeMoves)
-                    }
+                    // if(!activeMoves[i]){
+                    //     console.log("@" + activeMoves)
+                    // }
                     //TODO
                     if (activeMoves[i].id === playerAction.moveTarget) {
                         break
@@ -124,20 +125,23 @@ class Arena {
                 i = 0
                 const playerSide = request.side.pokemon
                 while (true) {
-                    if(!playerSide[i]){
-                        console.log()
-                    }
-                    const a = Dex.getName(playerSide[i].ident.split(" ")[1])
+
+                    // if(i === playerSide.length){
+                    //     console.log("hh")
+                    // }
+                    // const a = Dex.getName(playerSide[i].ident.split(" ")[1])
                     const pName = playerSide[i].details.split(",")[0]
-                        .replace("-","")
-                        .replace(" ", "")
-                        .replace("’", "")
-                        .replace("%", "")
-                        .replace(".", "")
+                        .replaceAll("-","")
+                        .replaceAll(" ", "")
+                        .replaceAll("’", "")
+                        .replaceAll("%", "")
+                        .replaceAll(".", "")
+                        .replaceAll(":", "")
                         .toLowerCase()
                     if (pName === playerAction.swapTarget) {
                         break
                     }
+
                     i++
                 }
                 command = `>${playerId} switch ${i + 1}`
@@ -154,8 +158,9 @@ class Arena {
             // console.log("available moves: " + availableMoves)
             // console.log("opposing pkmn: " + otherActivePkm)
             // console.log("picked move: " + availableMoves[move.value - 1])
-            console.log(command)
+            // console.log(command)
         }
+        this.battleLog.push(command)
         return command
 
     }
@@ -169,6 +174,7 @@ class Arena {
         const activePlayer = this.player1.id === playerId ? this.player1 : this.player2
         const battleInfo = this.getBattleInfo(request)
         const playerAction = activePlayer.pickMove(battleInfo, request)
+        //TODO vectorize
         const command = this.playerActionToStreamCommand(playerAction, request)
         this.stream.write(command);
 
@@ -183,12 +189,14 @@ class Arena {
         }
         const winnerTeam = winnerPlayer.team
         const loserTeam = loserPlayer.team
+        const player1teamStatus =  this.stream.battle.sides[0].id === this.player1.id ? this.stream.battle.sides[0].pokemon : this.stream.battle.sides[1].pokemon
+        const player2teamStatus = this.stream.battle.sides[0].id === this.player2.id ? this.stream.battle.sides[0].pokemon : this.stream.battle.sides[1].pokemon
         const battleRecord: BattleRecord = {
             winner: winnerPlayer,
             player1: this.player1,
             player2: this.player2,
-            player1LeftNum: 0,
-            player2LeftNum: 0,
+            player1LeftNum: player1teamStatus.filter(p=>p.hp>0).length,
+            player2LeftNum: player2teamStatus.filter(p=>p.hp>0).length,
             turns: undefined
         }
         this.battleRecord = battleRecord
@@ -196,16 +204,17 @@ class Arena {
     }
 
     private async doTurn(streamOut: string): Promise<void> {
-        if (this.stream.buf.length === 0) {
-            await timeout(30)
-            if (this.stream.buf.length === 0) {
-                throw new Error("Could not finish match due to buffer timeout :/")
-            }
-        }
+        // if (this.stream.buf.length === 0) {
+        //     await timeout(30)
+        //     if (this.stream.buf.length === 0) {
+        //         throw new Error("Could not finish match due to buffer timeout :/")
+        //     }
+        // }
 
-        if (this.log) {
-            console.log(streamOut)
-        }
+        // if (this.log) {
+        //     console.log(streamOut)
+        // }
+        this.battleLog.push(streamOut)
         for (let tmp of streamOut.split("\n")) {
             if (tmp.startsWith("|error|")) {
                 this.handleError(tmp)

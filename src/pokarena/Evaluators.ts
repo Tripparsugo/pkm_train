@@ -10,7 +10,11 @@ function makeInitialActionEvaluation(battleInfo, request): ActionEvaluation[] {
     const BASE_EVALUATION = 1
     const activePokemon = battleInfo.playerSide.filter(p => p.isActive)[0]
     for (const pk of battleInfo.playerSide) {
+        //trapped can also be "hidden"
         if (activePokemon && activePokemon.trapped) {
+            if(activePokemon.trapped){
+                // console.log("")
+            }
             break
         }
 
@@ -28,8 +32,13 @@ function makeInitialActionEvaluation(battleInfo, request): ActionEvaluation[] {
         return actionEvaluations
     }
 
+    if(!request.active[0].moves){
+        // console.log("here")
+    }
+    const activeMovesIds = request.active[0].moves.map(m=> m.id)
+
     for (const pm of activePokemon.moveSlots) {
-        if (!pm.disabled && pm.pp > 0) {
+        if (!pm.disabled && pm.pp > 0 && activeMovesIds.includes(pm.id)) {
             actionEvaluations.push(
                 {
                     playerAction: {type: MoveType.ATTACK, moveTarget: pm.id},
@@ -37,6 +46,15 @@ function makeInitialActionEvaluation(battleInfo, request): ActionEvaluation[] {
                 }
             )
         }
+    }
+
+    if(activeMovesIds.includes("struggle")){
+        actionEvaluations.push(
+            {
+                playerAction: {type: MoveType.ATTACK, moveTarget: "struggle"},
+                evaluation: BASE_EVALUATION
+            }
+        )
     }
 
 
@@ -48,7 +66,7 @@ function computeVsMaxPower(ownPokemon: Pokemon, opposingPokemon: OpponentPokemon
     let maxAgainstPower = 0
     let maxReceivingPower = 0
     if(!ownPokemon.moveSlots){
-        console.log("")
+        // console.log("")
     }
     for (const ms of ownPokemon.moveSlots) {
         const dexMove = Dex.getActiveMove(ms.id)

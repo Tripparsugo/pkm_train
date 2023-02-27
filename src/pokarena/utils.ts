@@ -58,5 +58,14 @@ function softmax(logits) {
     return scores.map((s) => s / denom);
 }
 
-export {playerToStreamPlayer, timeout, computeMoveAveragePower, softmax}
+
+function convertToCSV(arr) {
+    const array = [Object.keys(arr[0])].concat(arr)
+
+    return array.map(it => {
+        return Object.values(it).toString()
+    }).join('\n')
+}
+
+export {playerToStreamPlayer, timeout, computeMoveAveragePower, softmax, convertToCSV}
 
