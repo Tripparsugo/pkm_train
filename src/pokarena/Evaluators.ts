@@ -202,6 +202,24 @@ class IdentityEvaluator implements ActionEvaluator {
 
 }
 
+
+class SwapDiscourageEvaluator implements ActionEvaluator {
+    readonly evaluationStrategy: string;
+
+    constructor() {
+        this.evaluationStrategy = "swap";
+    }
+
+    evaluateMoves(battleInfo: BattleInfo, initialEvaluations: ActionEvaluation[]): ActionEvaluation[] {
+        const updatedEvaluations = _.cloneDeep(initialEvaluations)
+        updatedEvaluations.filter(ev=> ev.playerAction.type === MoveType.SWAP).forEach(ev=> ev.evaluation *= 0.7)
+
+        return updatedEvaluations;
+    }
+
+
+}
+
 class PipelineEvaluator implements ActionEvaluator {
     readonly evaluationStrategy: string;
     private readonly evaluators: ActionEvaluator[]
@@ -229,5 +247,5 @@ class PipelineEvaluator implements ActionEvaluator {
 
 
 export {
-    makeInitialActionEvaluation, PipelineEvaluator, MovePowerEvaluator, BoostMoveEvaluator, IdentityEvaluator, SwapOnWeakOffenceDefenceEvaluator
+    makeInitialActionEvaluation, PipelineEvaluator, MovePowerEvaluator, BoostMoveEvaluator, IdentityEvaluator, SwapOnWeakOffenceDefenceEvaluator, SwapDiscourageEvaluator
 }

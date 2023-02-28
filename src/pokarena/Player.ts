@@ -4,7 +4,7 @@ import {
     IdentityEvaluator,
     makeInitialActionEvaluation,
     MovePowerEvaluator,
-    PipelineEvaluator, SwapOnWeakOffenceDefenceEvaluator
+    PipelineEvaluator, SwapDiscourageEvaluator, SwapOnWeakOffenceDefenceEvaluator
 } from "./Evaluators";
 import {Teams} from "pokemon-showdown";
 import {RandomPicker, SoftmaxPicker} from "./Pickers";
@@ -36,6 +36,8 @@ class ConcretePlayer implements Player{
         if(evaluations.length===0){
             // console.log("ff")
         }
+
+
         const action = this.actionPicker.pickMove(evaluations)
         return action
     }
@@ -56,10 +58,17 @@ function makeRandomPlayer(): Player{
 function makeStandardPlayer(): Player {
     const team = Teams.generate(FORMAT)
     const evaluator = new PipelineEvaluator([new MovePowerEvaluator(),
-        new BoostMoveEvaluator(), new SwapOnWeakOffenceDefenceEvaluator], "standard")
+        new BoostMoveEvaluator(), new SwapOnWeakOffenceDefenceEvaluator, new SwapDiscourageEvaluator()], "standard")
     const player = new ConcretePlayer("standard",team, evaluator, new SoftmaxPicker())
     return player
 }
+
+function makeDeepPlayer(): Player{
+    return null
+}
+
+
+
 
 function makePlayer(randomPlayerChance: number, ): Player {
     return null

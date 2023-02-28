@@ -24,8 +24,6 @@ function timeout(ms) {
 
 
 function computeMoveAveragePower(activeMoveDex, activePokemonTypes: string[], opponentActivePokemonTypes: string[]): number {
-
-
     const effToMultiplier = new Map();
     effToMultiplier.set(-2, 0.25)
     effToMultiplier.set(-1, 0.5)
@@ -58,6 +56,11 @@ function softmax(logits) {
     return scores.map((s) => s / denom);
 }
 
+function oneHotEncode(values, categories): number[] {
+    categories.sort()
+    return categories.map(c => values.includes(c) ? 1 : 0)
+}
+
 
 function convertToCSV(arr) {
     const array = [Object.keys(arr[0])].concat(arr)
@@ -67,5 +70,10 @@ function convertToCSV(arr) {
     }).join('\n')
 }
 
-export {playerToStreamPlayer, timeout, computeMoveAveragePower, softmax, convertToCSV}
+
+function normalizeName(name){
+    return name.toLowerCase().replaceAll(/[’:.\-% ]/ig, "")
+}
+
+export {playerToStreamPlayer, timeout, computeMoveAveragePower, softmax, convertToCSV, oneHotEncode, normalizeName}
 
