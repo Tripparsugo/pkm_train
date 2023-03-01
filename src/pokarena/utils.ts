@@ -56,7 +56,7 @@ function softmax(logits) {
     return scores.map((s) => s / denom);
 }
 
-function oneHotEncode(values, categories): number[] {
+function oneHotEncode( categories, values,): number[] {
     categories.sort()
     return categories.map(c => values.includes(c) ? 1 : 0)
 }

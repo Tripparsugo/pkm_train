@@ -8,4 +8,7 @@ graphs/figs
 trash/*
 trash
 graphs/data
-tmp.csv
+tmp/tmp.csv
+generations
+tmp
+

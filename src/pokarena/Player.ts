@@ -8,6 +8,8 @@ import {
 } from "./Evaluators";
 import {Teams} from "pokemon-showdown";
 import {RandomPicker, SoftmaxPicker} from "./Pickers";
+import * as brain from "brain.js"
+import * as fs from "fs"
 
 const FORMAT = ""
 class ConcretePlayer implements Player{
@@ -63,7 +65,14 @@ function makeStandardPlayer(): Player {
     return player
 }
 
-function makeDeepPlayer(): Player{
+
+
+
+function makeLatestDeepPlayer(): Player{
+    let network = new brain.NeuralNetwork();
+
+    const networkState = JSON.parse(fs.readFileSync("network_state.json", "utf-8"));
+    network.fromJSON(networkState);
     return null
 }
 

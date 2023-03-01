@@ -41,8 +41,8 @@ interface Player {
 interface BattleRecord {
     //no winner when draw
     readonly winner?: Player
-    readonly player1LeftNum: number
-    readonly player2LeftNum: number
+    readonly winnerLeftNum: number
+    readonly loserLeftNum: number
     readonly player1: Player
     readonly player2: Player
     readonly turns: any

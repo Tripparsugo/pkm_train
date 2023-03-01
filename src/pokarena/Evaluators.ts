@@ -4,6 +4,7 @@ import {computeMoveAveragePower} from "./utils";
 import {Pokemon, Dex} from 'pokemon-showdown';
 // @ts-ignore
 import * as _ from "lodash"
+import {NeuralNetwork} from "brain.js";
 
 function makeInitialActionEvaluation(battleInfo, request): ActionEvaluation[] {
     const actionEvaluations: ActionEvaluation[] = []
@@ -208,6 +209,26 @@ class SwapDiscourageEvaluator implements ActionEvaluator {
 
     constructor() {
         this.evaluationStrategy = "swap";
+    }
+
+    evaluateMoves(battleInfo: BattleInfo, initialEvaluations: ActionEvaluation[]): ActionEvaluation[] {
+        const updatedEvaluations = _.cloneDeep(initialEvaluations)
+        updatedEvaluations.filter(ev=> ev.playerAction.type === MoveType.SWAP).forEach(ev=> ev.evaluation *= 0.7)
+
+        return updatedEvaluations;
+    }
+
+
+}
+
+
+class DeepEvaluator implements ActionEvaluator {
+    readonly evaluationStrategy: string;
+    private readonly deepBrain: NeuralNetwork<any, any>
+
+    constructor(deepBrain) {
+        this.evaluationStrategy = "swap";
+        this.deepBrain = deepBrain
     }
 
     evaluateMoves(battleInfo: BattleInfo, initialEvaluations: ActionEvaluation[]): ActionEvaluation[] {
