@@ -1,5 +1,5 @@
-const fs = require('fs');
-const readline = require('readline');
+import * as fs from "fs"
+import * as readline from "readline"
 
 async function processLineByLine() {
     const fileStream = fs.createReadStream('./tmp/ts.csv');

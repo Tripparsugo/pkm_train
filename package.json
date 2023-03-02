@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "main": "node app.js",
-    "newMain": "ts-node src/newApp.ts",
-    "hi": "node hello.js",
+    "newMain": "ts-node  src/newApp.ts",
+    "hi": "node hi.js",
+    "hello": "ts-node  hello.ts",
     "postinstall": "npm run typings",
     "typings": "typings install"
   },
