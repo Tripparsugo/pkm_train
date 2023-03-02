@@ -110,11 +110,12 @@ function vectorizeOpponentPokemon(pokemon: any, valid) {
 
 function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid) {
     if (!valid) {
-        const size = 5 + POKEMON_TYPES.length + ITEMS.length + POKEMON_TYPES.length + vectorizePlayerMove(undefined, false).length * 4
+        const size = 5 + POKEMON_TYPES.length + ITEMS.length + POKEMON_TYPES.length + vectorizePlayerMove(undefined, playerAction, false).length * 4
         const v = new Array(size).fill(0)
         return v
     }
-    const isSelectedSwap = playerAction.type === MoveType.SWAP && playerAction.swapTarget === pokemon.id
+    // TODO make sure this is correct
+    const isSelectedSwap = playerAction.type === MoveType.SWAP && playerAction.swapTarget === pokemon.species.id
     const ability = normalizeName(pokemon.ability)
     const abilityEncoding = oneHotEncode(POKEMON_ABILITIES, [ability])
     const item = normalizeName(pokemon.item)
@@ -135,7 +136,7 @@ function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid)
     // const pokemon.moves
     for (let i = 0; i < 4; i++) {
         const slot = pokemon.moveSlots[i]
-        movesEncoding = movesEncoding.concat(vectorizePlayerMove(slot, !!slot))
+        movesEncoding = movesEncoding.concat(vectorizePlayerMove(slot, playerAction, !!slot))
     }
 
 
@@ -159,11 +160,12 @@ function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid)
     return ret
 }
 
-function vectorizePlayerMove(move, valid) {
+function vectorizePlayerMove(move, playerAction: PlayerAction, valid) {
     if (!valid) {
-        const size = 6
-        return new Array(size).fill(0).concat(vectorizeDexMove(undefined, false))
+        const size = 7 + vectorizeDexMove(undefined, false).length
+        return new Array(size).fill(0)
     }
+    const isSelectedMove = playerAction.type === MoveType.ATTACK && playerAction.moveTarget === move.id
     const pp = move.pp / 40
     const maxpp = move.maxpp / 40
     const disabled = move.disabled ? 1 : 0
@@ -172,6 +174,7 @@ function vectorizePlayerMove(move, valid) {
     const vDexMove = vectorizeDexMove(dexMove, valid)
     // console.log(vDexMove.length)
     return [
+        isSelectedMove? 1:0,
         valid ? 1 : 0,
         pp,
         maxpp,
