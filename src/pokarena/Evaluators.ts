@@ -1,8 +1,6 @@
 import {ActionEvaluation, ActionEvaluator, BattleInfo, MoveType, OpponentPokemonInfo} from "./pt";
 import {computeMoveAveragePower} from "./utils";
-// @ts-ignore
 import {Pokemon, Dex} from 'pokemon-showdown';
-// @ts-ignore
 import * as _ from "lodash"
 // import {NeuralNetwork} from "brain.js";
 

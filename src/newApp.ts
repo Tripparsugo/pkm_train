@@ -42,7 +42,8 @@ function computeReward(pokemonLeft, otherPokemonLeft, won) {
 }
 
 async function doBattle() {
-    const p1 = makeRandomPlayer()
+    // const p1 = makeRandomPlayer()
+    const p1 = makeStandardPlayer()
     const p2 = makeStandardPlayer()
 
     const turnResults = []
@@ -61,7 +62,7 @@ async function doBattle() {
             :[battleResults.loserLeftNum, battleResults.winnerLeftNum]
         tr.reward = computeReward(ownLeft, otherLeft, won)
     }
-
+    //TODO change back
     return {battleResults, turnResults}
 }
 
@@ -100,12 +101,12 @@ function handleBattlesEnd(rs: any) {
 
     const csvData = convertToCSV(ds)
     fs.writeFileSync('./tmp/tmp.csv', csvData);
-    const csvData2 = convertToCSV(ts)
-    fs.writeFileSync('./tmp/ts.csv', csvData2);
+    // const csvData2 = convertToCSV(ts)
+    // fs.writeFileSync('./tmp/ts.csv', csvData2);
 
 }
 
-const BATTLES = 1000
+const BATTLES = 100
 console.time("battles_time");
 doBattles(BATTLES).then(rs => {
 
