@@ -1,5 +1,9 @@
 import {ActionEvaluator, OpponentPokemonInfo, Player, PokemonInfo, StreamPlayer} from "./pt";
 import {Teams, Dex} from "pokemon-showdown";
+import * as tf from "@tensorflow/tfjs-node"
+import {readdirSync} from 'fs'
+import * as path from "path"
+import {vectorizeTurnInfo} from "./vectorization";
 
 function buildAIAveraging(ai1: ActionEvaluator, ai2: ActionEvaluator, ai_w1: number): ActionEvaluator {
     return null
@@ -56,7 +60,7 @@ function softmax(logits) {
     return scores.map((s) => s / denom);
 }
 
-function oneHotEncode( categories, values,): number[] {
+function oneHotEncode(categories, values,): number[] {
     categories.sort()
     return categories.map(c => values.includes(c) ? 1 : 0)
 }
@@ -71,9 +75,63 @@ function convertToCSV(arr) {
 }
 
 
-function normalizeName(name){
+function normalizeName(name) {
     return name.toLowerCase().replaceAll(/[’:.\-% ]/ig, "")
 }
 
-export {playerToStreamPlayer, timeout, computeMoveAveragePower, softmax, convertToCSV, oneHotEncode, normalizeName}
+
+function getNewModel(): tf.LayersModel {
+    const model = tf.sequential();
+    const inputL = vectorizeTurnInfo(undefined, undefined, false).length
+    //TODO with inputL
+    model.add(tf.layers.dense({units: 100, inputShape: [2868]}));
+    model.add(tf.layers.dense({activation: "sigmoid", units: 1}));
+// Prepare the model for training: Specify the loss and the optimizer.
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    return model
+}
+
+async function getLatestModelOrCreateNew(): Promise<tf.LayersModel> {
+    const modelsDir = path.resolve("./mod")
+    const dirNames = readdirSync(modelsDir, {withFileTypes: true})
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => `${modelsDir}/${dirent.name}`)
+
+    if (dirNames.length === 0) {
+        const newModel = getNewModel()
+        const modelDir = `file://${modelsDir}/0`
+        await newModel.save(modelDir)
+        return newModel
+    }
+    const sortedDirNames = dirNames.sort((a, b) =>
+        Number.parseInt(a.split("/").slice(-1)[0]) - Number.parseInt(b.split("/").slice(-1)[0]))
+    const latestDirName = sortedDirNames[sortedDirNames.length - 1]
+
+    const latestModel = await tf.loadLayersModel(`file://${latestDirName}/model.json`)
+    return latestModel
+}
+
+
+async function saveLatestModel(model: tf.LayersModel) {
+    const modelsDir = path.resolve("./mod")
+    const dirNames = readdirSync(modelsDir, {withFileTypes: true})
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => `${modelsDir}/${dirent.name}`)
+    const nextDirNum = dirNames.length
+    const nextDirName = `file://${modelsDir}/${nextDirNum}`
+    await model.save(nextDirName)
+
+}
+
+export {
+    playerToStreamPlayer,
+    timeout,
+    computeMoveAveragePower,
+    softmax,
+    convertToCSV,
+    oneHotEncode,
+    normalizeName,
+    getLatestModelOrCreateNew,
+    saveLatestModel
+}
 

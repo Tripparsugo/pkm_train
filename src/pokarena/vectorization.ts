@@ -3,17 +3,17 @@ import {normalizeName, oneHotEncode} from "./utils";
 import {DataMove} from "pokemon-showdown/.sim-dist/dex-moves";
 import {Dex} from "pokemon-showdown";
 
-function vectorizeTurnInfo(battleInfo: BattleInfo, playerAction: PlayerAction): number[] {
+function vectorizeTurnInfo(battleInfo: BattleInfo, playerAction: PlayerAction, valid: boolean): number[] {
     let v = []
     for (let i = 0; i < 6; i++) {
-        const p = battleInfo.playerSide[i]
+        const p = valid? battleInfo.playerSide[i]: null
         const v1 = vectorizePlayerPokemon(p, playerAction, !!p)
         v = v.concat(v1)
     }
 
 
     for (let i = 0; i < 6; i++) {
-        const p = battleInfo.opponentSide[i]
+        const p = valid? battleInfo.opponentSide[i]: null
         const v2 = vectorizeOpponentPokemon(p, !!p)
         v = v.concat(v2)
     }
@@ -74,6 +74,30 @@ const ITEMS = [
 const BOOST_TARGETS = ["atk", "spa", "def", "def", "spd", "spe"]
 const STATS = ["hp", ...BOOST_TARGETS]
 
+
+function vectorizeOpponentPokemonShort(pokemon: any, valid){
+    if (!valid) {
+        const size = 2 + POKEMON_TYPES.length + STATS.length
+        // console.log(size)
+        return new Array(size).fill(0)
+    }
+    const statEncoding = []
+    for (const s of STATS) {
+        statEncoding.push(pokemon.species.baseStats[s] / 255)
+    }
+    const typesEncoding = oneHotEncode(POKEMON_TYPES, pokemon.species.types)
+    const hpPercentage = pokemon.hpPercentage
+
+    const encoding = [
+        ...statEncoding,
+        ...typesEncoding,
+        pokemon.isActive ? 1 : 0,
+        hpPercentage
+    ]
+    return encoding
+
+
+}
 
 function vectorizeOpponentPokemon(pokemon: any, valid) {
     if (!valid) {
@@ -139,7 +163,7 @@ function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid)
         movesEncoding = movesEncoding.concat(vectorizePlayerMove(slot, playerAction, !!slot))
     }
 
-
+    //TODO add status
     const ret = [
         valid ? 1 : 0,
         isSelectedSwap? 1: 0,
@@ -210,7 +234,7 @@ function vectorizeDexMove(dexMove: any, valid: boolean): number[] {
         boostEncoding.push(boosts[t] ? boosts[t] / 3 : 0)
     }
     const target = dexMove.target === "self" ? 1 : 0 // self|normal
-
+    //TODO add valid
     const encoding = [
         accuracy,
         basePower,

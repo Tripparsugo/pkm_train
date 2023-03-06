@@ -13,4 +13,6 @@ generations
 tmp
 mod
 build
+**/.DS_Store
+
 

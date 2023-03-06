@@ -3,6 +3,10 @@ import {computeMoveAveragePower} from "./utils";
 import {Pokemon, Dex} from 'pokemon-showdown';
 import * as _ from "lodash"
 // import {NeuralNetwork} from "brain.js";
+import * as tf from "@tensorflow/tfjs-node"
+import {vectorizeTurnInfo} from "./vectorization";
+import {LayersModel} from "@tensorflow/tfjs-node";
+
 
 function makeInitialActionEvaluation(battleInfo, request): ActionEvaluation[] {
     const actionEvaluations: ActionEvaluation[] = []
@@ -154,6 +158,28 @@ class BoostMoveEvaluator implements ActionEvaluator {
 }
 
 
+class DeepActionEvaluator implements ActionEvaluator {
+    readonly evaluationStrategy: string;
+    readonly model: tf.LayersModel
+
+    constructor(model: LayersModel) {
+        this.model = model
+    }
+
+    evaluateMoves(battleInfo: BattleInfo, initialEvaluations: ActionEvaluation[]): ActionEvaluation[] {
+        const updatedEvaluations = _.cloneDeep(initialEvaluations)
+        for(const ae of updatedEvaluations) {
+            const v = vectorizeTurnInfo(battleInfo, ae.playerAction, true)
+            const t = tf.tensor(v, [1, v.length])
+            const p = this.model.predict(t)[0]
+            updatedEvaluations.evaluation = p
+        }
+        return updatedEvaluations
+    }
+
+
+}
+
 class SwapOnWeakOffenceDefenceEvaluator implements ActionEvaluator {
     evaluationStrategy: "boost_powerful_moves"
 
@@ -254,7 +280,7 @@ class PipelineEvaluator implements ActionEvaluator {
 
 
     evaluateMoves(battleInfo: BattleInfo, initialEvaluations: ActionEvaluation[]): ActionEvaluation[] {
-        let updatedEvaluations = initialEvaluations
+        let updatedEvaluations = _.cloneDeep(initialEvaluations)
         for (const e of this.evaluators) {
             updatedEvaluations = e.evaluateMoves(battleInfo, updatedEvaluations)
         }
@@ -266,5 +292,5 @@ class PipelineEvaluator implements ActionEvaluator {
 
 
 export {
-    makeInitialActionEvaluation, PipelineEvaluator, MovePowerEvaluator, BoostMoveEvaluator, IdentityEvaluator, SwapOnWeakOffenceDefenceEvaluator, SwapDiscourageEvaluator
+    makeInitialActionEvaluation, PipelineEvaluator, MovePowerEvaluator, BoostMoveEvaluator, IdentityEvaluator, SwapOnWeakOffenceDefenceEvaluator, SwapDiscourageEvaluator, DeepActionEvaluator
 }
