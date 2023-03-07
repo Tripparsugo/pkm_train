@@ -3,26 +3,6 @@ import {normalizeName, oneHotEncode} from "./utils";
 import {DataMove} from "pokemon-showdown/.sim-dist/dex-moves";
 import {Dex} from "pokemon-showdown";
 
-function vectorizeTurnInfo(battleInfo: BattleInfo, playerAction: PlayerAction, valid: boolean): number[] {
-    let v = []
-    for (let i = 0; i < 6; i++) {
-        const p = valid? battleInfo.playerSide[i]: null
-        const v1 = vectorizePlayerPokemon(p, playerAction, !!p)
-        v = v.concat(v1)
-    }
-
-
-
-    for (let i = 0; i < 6; i++) {
-        const p = valid? battleInfo.opponentSide[i]: null
-        const v2 = vectorizeOpponentPokemon(p, !!p)
-        v = v.concat(v2)
-    }
-
-    // console.log("@@@@@@@@" + v.length)
-
-    return v
-}
 
 const POKEMON_TYPES = [
     "normal",
@@ -45,6 +25,16 @@ const POKEMON_TYPES = [
     "fairy"
 ]
 
+const POKEMON_STATUSES = [
+    "fnt",
+    "tox",
+    "slp",
+    "par",
+    "brn",
+    "frz",
+    "psn"
+]
+
 const POKEMON_ABILITIES = [
     "intimidate",
     "wonderguard",
@@ -52,7 +42,8 @@ const POKEMON_ABILITIES = [
     "protean",
     "multiscale",
     "levitate",
-    "magicguard"
+    "magicguard",
+    "prankster"
 ]
 
 const MOVE_CATEGORIES = [
@@ -71,46 +62,94 @@ const ITEMS = [
     "focussash"
 ]
 
+const WEATHER_STATUSES = [
+    "sandstorm",
+    "sunnyday",
+    "raindance"
+]
+
+const UNIQUE_MOVES = [
+    "stealthrock",
+    "rapidspin",
+    "defog",
+    "roost"
+]
+
+const FIELD_CONDITIONS = [
+    "stealthrock"
+]
+
 const BOOST_TARGETS = ["atk", "spa", "def", "def", "spd", "spe"]
 const STATS = ["hp", ...BOOST_TARGETS]
 
-
-function vectorizeOpponentPokemonShort(pokemon: any, valid){
+function vectorizeTurnInfo(battleInfo: BattleInfo, playerAction: PlayerAction, valid: boolean): number[] {
     if (!valid) {
-        const size = 2 + POKEMON_TYPES.length + STATS.length
+        const size = FIELD_CONDITIONS.length * 2 + WEATHER_STATUSES.length +
+            + vectorizePlayerPokemon(null, null, false).length * 6
+            + vectorizeOpponentPokemon(null, false).length
+            + vectorizeOpponentPokemonShort(null, false).length * 5
+        return new Array(size).fill(0)
+    }
+    const weatherEncoding = oneHotEncode(WEATHER_STATUSES, battleInfo.weather)
+    const allyFieldEncoding = oneHotEncode(FIELD_CONDITIONS, battleInfo.playerFieldConditions[0]?? "")
+    const enemyFieldEncoding = oneHotEncode(FIELD_CONDITIONS, battleInfo.enemyFieldConditions[0]?? "")
+
+    let encoding = [
+        ...weatherEncoding,
+        ...allyFieldEncoding,
+        ...enemyFieldEncoding
+    ]
+
+    for (let i = 0; i < 6; i++) {
+        const p = battleInfo.playerSide[i]
+        const v1 = vectorizePlayerPokemon(p, playerAction, !!p)
+        encoding = encoding.concat(v1)
+    }
+
+
+    for (let i = 0; i < 6; i++) {
+        const p = battleInfo.opponentSide[i]
+        const v2 = i == 0 ? vectorizeOpponentPokemon(p, !!p) : vectorizeOpponentPokemonShort(p, !!p)
+        encoding = encoding.concat(v2)
+    }
+
+    // console.log("@@@@@@@@" + v.length)
+
+    return encoding
+}
+
+
+//skips vectorization of moves
+function vectorizeOpponentPokemonShort(pokemon: any, valid) {
+    if (!valid) {
+        const size = 2 + POKEMON_TYPES.length + STATS.length + POKEMON_STATUSES.length
         // console.log(size)
         return new Array(size).fill(0)
     }
+
     const statEncoding = []
     for (const s of STATS) {
         statEncoding.push(pokemon.species.baseStats[s] / 255)
     }
     const typesEncoding = oneHotEncode(POKEMON_TYPES, pokemon.species.types)
     const hpPercentage = pokemon.hpPercentage
-
+    const statusEncoding = oneHotEncode(POKEMON_STATUSES, pokemon.status)
     const encoding = [
+        ...statusEncoding,
         ...statEncoding,
         ...typesEncoding,
         pokemon.isActive ? 1 : 0,
         hpPercentage
     ]
     return encoding
-
-
 }
 
 function vectorizeOpponentPokemon(pokemon: any, valid) {
     if (!valid) {
-        const size = 2 + POKEMON_TYPES.length + STATS.length + vectorizeDexMove(undefined, false).length*6
-        // console.log(size)
+        const size = vectorizeOpponentPokemonShort(pokemon, valid).length + vectorizeDexMove(undefined, false).length * 6
         return new Array(size).fill(0)
     }
-    const statEncoding = []
-    for (const s of STATS) {
-        statEncoding.push(pokemon.species.baseStats[s] / 255)
-    }
-    const typesEncoding = oneHotEncode(POKEMON_TYPES, pokemon.species.types)
-    const hpPercentage = pokemon.hpPercentage
+    const shortEnconding = vectorizeOpponentPokemonShort(pokemon, valid)
     let moves = []
     for (let i = 0; i < 6; i++) {
         const move = pokemon?.potentialMoves[i]
@@ -121,11 +160,8 @@ function vectorizeOpponentPokemon(pokemon: any, valid) {
 
 
     const encoding = [
-        ...statEncoding,
-        ...typesEncoding,
+        ...shortEnconding,
         ...moves,
-        pokemon.isActive ? 1 : 0,
-        hpPercentage
     ]
     return encoding
 
@@ -134,7 +170,8 @@ function vectorizeOpponentPokemon(pokemon: any, valid) {
 
 function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid) {
     if (!valid) {
-        const size = 5 + POKEMON_ABILITIES.length + ITEMS.length + POKEMON_TYPES.length + vectorizePlayerMove(undefined, playerAction, false).length * 4
+        const size = 5 + POKEMON_STATUSES.length + POKEMON_ABILITIES.length + ITEMS.length + POKEMON_TYPES.length +
+            vectorizePlayerMove(undefined, playerAction, false).length * 4
         const v = new Array(size).fill(0)
         return v
     }
@@ -154,6 +191,7 @@ function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid)
     for (const s of STATS) {
         statEncoding.push(pokemon.baseStoredStats[s] / 255)
     }
+    const statusEncoding = oneHotEncode(POKEMON_STATUSES, pokemon.status)
     const hp = pokemon.hp / 714
     const maxhp = pokemon.maxhp / 714
     let movesEncoding = []
@@ -166,10 +204,11 @@ function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid)
     //TODO add status
     const ret = [
         valid ? 1 : 0,
-        isSelectedSwap? 1: 0,
+        isSelectedSwap ? 1 : 0,
         pokemon.isActive ? 1 : 0,
         hp,
         maxhp,
+        ...statusEncoding,
         ...abilityEncoding,
         ...itemEncoding,
         ...typesEncoding,
@@ -198,7 +237,7 @@ function vectorizePlayerMove(move, playerAction: PlayerAction, valid) {
     const vDexMove = vectorizeDexMove(dexMove, valid)
     // console.log(vDexMove.length)
     return [
-        isSelectedMove? 1:0,
+        isSelectedMove ? 1 : 0,
         valid ? 1 : 0,
         pp,
         maxpp,
@@ -211,7 +250,7 @@ function vectorizePlayerMove(move, playerAction: PlayerAction, valid) {
 
 function vectorizeDexMove(dexMove: any, valid: boolean): number[] {
     if (!valid) {
-        const size = 8 + 5 + BOOST_TARGETS.length + POKEMON_TYPES.length + MOVE_CATEGORIES.length
+        const size = 8 + 5 + BOOST_TARGETS.length + POKEMON_TYPES.length + MOVE_CATEGORIES.length + UNIQUE_MOVES.length
         return new Array(size).fill(0)
     }
     const accuracy = (dexMove.accuracy === true ? 100 : dexMove.accuracy) / 100 //can be true for 100%
@@ -229,6 +268,7 @@ function vectorizeDexMove(dexMove: any, valid: boolean): number[] {
     const volatileStatus = dexMove.volatileStatus ? 1 : 0 //protect
     const boosts = dexMove.boosts ?? {} // {atk:,spa:,def:,spd:,spe:}
     const boostEncoding = []
+    const uniqueEncoding = oneHotEncode(UNIQUE_MOVES, [dexMove.id])
 
     for (const t of BOOST_TARGETS) {
         boostEncoding.push(boosts[t] ? boosts[t] / 3 : 0)
@@ -236,9 +276,10 @@ function vectorizeDexMove(dexMove: any, valid: boolean): number[] {
     const target = dexMove.target === "self" ? 1 : 0 // self|normal
     //TODO add valid
     const encoding = [
-        valid? 1: 0,
+        valid ? 1 : 0,
         accuracy,
         basePower,
+        ...uniqueEncoding,
         ...boostEncoding,
         ...priorityEncoding,
         ...typeEncoding,

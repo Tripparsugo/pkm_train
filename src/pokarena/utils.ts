@@ -83,9 +83,8 @@ function normalizeName(name) {
 function getNewModel(): tf.LayersModel {
     const model = tf.sequential();
     const inputL = vectorizeTurnInfo(undefined, undefined, false).length
-    //TODO with inputL
-    model.add(tf.layers.dense({units: 100, inputShape: [2868]}));
-    model.add(tf.layers.dense({activation: "sigmoid", units: 1}));
+    model.add(tf.layers.dense({activation: "relu", units: 300, inputShape: [inputL]}));
+    model.add(tf.layers.dense({activation: "relu", units: 1}));
 // Prepare the model for training: Specify the loss and the optimizer.
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
     return model

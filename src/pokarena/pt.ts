@@ -17,7 +17,10 @@ type StreamPlayer = { name: string, id: string, team: string }
 type BattleInfo = {
     playerSide: PokemonInfo[],
     opponentSide: OpponentPokemonInfo[],
-    battleHistory: any
+    battleHistory: any,
+    playerFieldConditions: string[],
+    enemyFieldConditions: string[],
+    weather:string
 }
 
 interface ActionEvaluator {

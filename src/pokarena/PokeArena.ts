@@ -8,7 +8,6 @@ Dex.includeFormats()
 Dex.includeMods()
 
 
-
 class Arena {
     private readonly player1: Player;
     private readonly player2: Player;
@@ -18,6 +17,7 @@ class Arena {
     private battleRecord: BattleRecord;
     readonly battleLog: string[];
     private readonly beforeTurnCallback
+    private requestCount
 
 
     constructor(player1: Player, player2: Player, beforeTurnCallback, log: boolean) {
@@ -30,6 +30,7 @@ class Arena {
         this.hasFinished = false;
         this.log = log
         this.beforeTurnCallback = beforeTurnCallback
+        this.requestCount = 0
     }
 
     async doBattle(): Promise<BattleRecord> {
@@ -52,11 +53,16 @@ class Arena {
         const activePlayerId = request.side.id;
         // const activePkm = request.active[0]
         // const otherActivePkm = this.stream.battle.sides[1].id === activePlayerId ? this.stream.battle.sides[0].active : this.stream.battle.sides[1].active
-        const playerSide = this.stream.battle.sides[0].id === activePlayerId ? this.stream.battle.sides[0].pokemon : this.stream.battle.sides[1].pokemon
-        const otherTeam = this.stream.battle.sides[1].id === activePlayerId ? this.stream.battle.sides[0].pokemon : this.stream.battle.sides[1].pokemon
+        const playerSide = this.stream.battle.sides[0].id === activePlayerId ? this.stream.battle.sides[0] : this.stream.battle.sides[1]
+        const otherSide = this.stream.battle.sides[1].id === activePlayerId ? this.stream.battle.sides[0] : this.stream.battle.sides[1]
+        const playerTeam = playerSide.pokemon
+        const otherTeam = otherSide.pokemon
 
+        const playerFieldConditions  = Object.keys(playerSide.sideConditions)
+        const enemyFieldConditions  = Object.keys(otherSide.sideConditions)
         const battleHistory = null
         const opponentSide = []
+        const weather = this.stream.battle.field.weather
 
         for (const p of otherTeam) {
             //never seen pkm
@@ -93,13 +99,16 @@ class Arena {
             )
         }
         return {
-            playerSide,
+            playerSide: playerTeam,
             battleHistory,
-            opponentSide
+            opponentSide,
+            playerFieldConditions,
+            enemyFieldConditions,
+            weather
+
         }
     }
 
-    //TODO fix
     private playerActionToStreamCommand(playerAction: PlayerAction, request: any): string {
         const playerId = request.side.id;
         let i;
@@ -109,30 +118,19 @@ class Arena {
                 i = 0
                 const activeMoves = request.active[0].moves
                 while (true) {
-                    // if(!activeMoves[i]){
-                    //     console.log("@" + activeMoves)
-                    // }
-                    //TODO
                     if (activeMoves[i].id === playerAction.moveTarget) {
                         break
                     }
                     i++
                 }
                 //command idx starts at 1
-                //TODO
                 command = `>${playerId} move ${i + 1}`
                 break
             case MoveType.SWAP:
                 i = 0
                 const playerSide = request.side.pokemon
                 while (true) {
-
-                    // if(i === playerSide.length){
-                    //     console.log("hh")
-                    // }
-                    // const a = Dex.getName(playerSide[i].ident.split(" ")[1])
                     const pName = normalizeName(playerSide[i].details.split(",")[0])
-
                     if (pName === playerAction.swapTarget) {
                         break
                     }
@@ -161,6 +159,10 @@ class Arena {
     }
 
     private handleRequest(s) {
+        this.requestCount += 1
+        if (this.requestCount > 400) {
+            throw new Error("Could not finish battle")
+        }
         const request = JSON.parse(s.substring("|request".length + 1))
         if (request.wait) {
             return
@@ -169,9 +171,8 @@ class Arena {
         const activePlayer = this.player1.id === playerId ? this.player1 : this.player2
         const battleInfo = this.getBattleInfo(request)
         const playerAction = activePlayer.pickMove(battleInfo, request)
-        const v = this.beforeTurnCallback(activePlayer, battleInfo, request, playerAction)
+        this.beforeTurnCallback(activePlayer, battleInfo, request, playerAction)
 
-        //TODO vectorize
         const command = this.playerActionToStreamCommand(playerAction, request)
         this.stream.write(command);
 
@@ -200,16 +201,6 @@ class Arena {
     }
 
     private async doTurn(streamOut: string): Promise<void> {
-        // if (this.stream.buf.length === 0) {
-        //     await timeout(30)
-        //     if (this.stream.buf.length === 0) {
-        //         throw new Error("Could not finish match due to buffer timeout :/")
-        //     }
-        // }
-
-        // if (this.log) {
-        //     console.log(streamOut)
-        // }
         this.battleLog.push(streamOut)
         for (let tmp of streamOut.split("\n")) {
             if (tmp.startsWith("|error|")) {

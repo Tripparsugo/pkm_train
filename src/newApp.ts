@@ -68,11 +68,11 @@ async function doBattles(p1, p2, n) {
     for (let i = 0; i < n; i++) {
         try {
             rs.push(await doBattle(p1, p2))
-            if (i % 50 === 0) {
+            if (i % 10 === 0) {
                 console.log(`${i}/${n}`)
             }
         } catch (e) {
-            //TODO
+            //TODO fix potentiall stopping conditions
             console.log(e)
         }
     }
@@ -89,17 +89,17 @@ async function handleBattlesEnd(rs: any, model) {
         const loserPlayer = battleResults.winner === battleResults.player1 ? battleResults.player2 : battleResults.player1
         const d = [...toTeamData(winnerPlayer.team, true, winnerPlayer.strategy),
             ...toTeamData(loserPlayer.team, false, loserPlayer.strategy)]
-        const t = turnResults.map(x => {
-            return {reward: x.reward, v: x.v.join(" ")}
-        })
-        ts = ts.concat(t)
+        // const t = turnResults.map(x => {
+        //     return {reward: x.reward, v: x.v.join(" ")}
+        // })
+        // ts = ts.concat(t)
         ds = ds.concat(d)
     }
 
     const csvData = convertToCSV(ds)
     fs.writeFileSync('./tmp/tmp.csv', csvData);
-    const csvData2 = convertToCSV(ts)
-    fs.writeFileSync('./tmp/ts.csv', csvData2);
+    // const csvData2 = convertToCSV(ts)
+    // fs.writeFileSync('./tmp/ts.csv', csvData2);
 
     return {ts, ds}
 
@@ -109,7 +109,8 @@ async function train(model: tf.LayersModel, turnResults) {
     const xs = turnResults.flatMap(t => t.v).map(t => Number.parseFloat(t))
     const ys = turnResults.map(t => Number.parseFloat(t.reward))
     model.compile({optimizer: "sgd", loss: 'meanSquaredError'})
-    await model.fit(tf.tensor(xs, [turnResults.length, 2868]), tf.tensor(ys, [turnResults.length, 1]),
+    const inputL = vectorizeTurnInfo(null,null, false).length
+    await model.fit(tf.tensor(xs, [turnResults.length, inputL]), tf.tensor(ys, [turnResults.length, 1]),
         {
             epochs: 100,
             batchSize: 32
@@ -117,10 +118,10 @@ async function train(model: tf.LayersModel, turnResults) {
     )
 }
 
-const TRAIN = false
-const p1Gen = "deepPlay"
-const p2Gen = "standard"
-const RUNS = 1
+const TRAIN = true
+const p1Gen = "deepTrain"
+const p2Gen = "deepTrain"
+const RUNS = 10
 const BATTLES = 100
 
 const PLAYER_GEN_MAP = {
@@ -140,17 +141,20 @@ async function run() {
     if (TRAIN) {
         console.log("training...")
         await train(model, ts)
+        await saveLatestModel(model)
     }
-    await saveLatestModel(model)
 }
 
 
-const  t = vectorizeTurnInfo(null,null, false)
+// const  t = vectorizeTurnInfo(null,null, false)
+// const i = 0
 async function doRuns() {
     for (let i = 0; i < RUNS; i++) {
+        console.log(`RUN: ${i+1}/${RUNS}`)
         await run()
     }
 }
+
 
 console.time("battles_time");
 doRuns().then(
