@@ -12,6 +12,7 @@ function vectorizeTurnInfo(battleInfo: BattleInfo, playerAction: PlayerAction, v
     }
 
 
+
     for (let i = 0; i < 6; i++) {
         const p = valid? battleInfo.opponentSide[i]: null
         const v2 = vectorizeOpponentPokemon(p, !!p)
@@ -19,7 +20,6 @@ function vectorizeTurnInfo(battleInfo: BattleInfo, playerAction: PlayerAction, v
     }
 
     // console.log("@@@@@@@@" + v.length)
-
 
     return v
 }
@@ -134,7 +134,7 @@ function vectorizeOpponentPokemon(pokemon: any, valid) {
 
 function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid) {
     if (!valid) {
-        const size = 5 + POKEMON_TYPES.length + ITEMS.length + POKEMON_TYPES.length + vectorizePlayerMove(undefined, playerAction, false).length * 4
+        const size = 5 + POKEMON_ABILITIES.length + ITEMS.length + POKEMON_TYPES.length + vectorizePlayerMove(undefined, playerAction, false).length * 4
         const v = new Array(size).fill(0)
         return v
     }
@@ -186,7 +186,7 @@ function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid)
 
 function vectorizePlayerMove(move, playerAction: PlayerAction, valid) {
     if (!valid) {
-        const size = 7 + vectorizeDexMove(undefined, false).length
+        const size = 6 + vectorizeDexMove(undefined, false).length
         return new Array(size).fill(0)
     }
     const isSelectedMove = playerAction.type === MoveType.ATTACK && playerAction.moveTarget === move.id
@@ -211,7 +211,7 @@ function vectorizePlayerMove(move, playerAction: PlayerAction, valid) {
 
 function vectorizeDexMove(dexMove: any, valid: boolean): number[] {
     if (!valid) {
-        const size = 7 + 5 + BOOST_TARGETS.length + POKEMON_TYPES.length + MOVE_CATEGORIES.length
+        const size = 8 + 5 + BOOST_TARGETS.length + POKEMON_TYPES.length + MOVE_CATEGORIES.length
         return new Array(size).fill(0)
     }
     const accuracy = (dexMove.accuracy === true ? 100 : dexMove.accuracy) / 100 //can be true for 100%
@@ -236,6 +236,7 @@ function vectorizeDexMove(dexMove: any, valid: boolean): number[] {
     const target = dexMove.target === "self" ? 1 : 0 // self|normal
     //TODO add valid
     const encoding = [
+        valid? 1: 0,
         accuracy,
         basePower,
         ...boostEncoding,

@@ -1,11 +1,8 @@
 import {BattleInfo, BattleRecord, MoveType, OpponentMove, Player, PlayerAction, PokemonInfo} from "./pt";
-// import * as fs from "fs";
 // TODO
 // @ts-ignore
 import {BattleStream, Dex, Pokemon} from 'pokemon-showdown'
 import {normalizeName, oneHotEncode, playerToStreamPlayer, timeout} from "./utils";
-import Move = Dex.Move;
-import {DataMove} from "pokemon-showdown/.sim-dist/dex-moves";
 
 Dex.includeFormats()
 Dex.includeMods()

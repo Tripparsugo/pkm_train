@@ -73,7 +73,7 @@ async function doBattles(p1, p2, n) {
             }
         } catch (e) {
             //TODO
-            // console.log(e)
+            console.log(e)
         }
     }
     return rs
@@ -117,13 +117,23 @@ async function train(model: tf.LayersModel, turnResults) {
     )
 }
 
-const TRAIN = true
+const TRAIN = false
+const p1Gen = "deepPlay"
+const p2Gen = "standard"
+const RUNS = 1
+const BATTLES = 100
+
+const PLAYER_GEN_MAP = {
+    "deepTrain": async ()=> await makeLatestDeepPlayer(true),
+    "deepPlay": async ()=> await makeLatestDeepPlayer(false),
+    "random": async ()=> await makeRandomPlayer(),
+    "standard": async ()=> await makeStandardPlayer(),
+}
 
 async function run() {
-    const BATTLES = 100
     const model = await getLatestModelOrCreateNew()
-    const p1 = await makeLatestDeepPlayer(true)
-    const p2 = await makeLatestDeepPlayer(true)
+    const p1 = await PLAYER_GEN_MAP[p1Gen]()
+    const p2 = await PLAYER_GEN_MAP[p2Gen]()
     const results = await doBattles(p1, p2, BATTLES)
     await handleBattlesEnd(results, model)
     const ts = results.flatMap(r => r.turnResults)
@@ -134,8 +144,8 @@ async function run() {
     await saveLatestModel(model)
 }
 
-const RUNS = 20
 
+const  t = vectorizeTurnInfo(null,null, false)
 async function doRuns() {
     for (let i = 0; i < RUNS; i++) {
         await run()
