@@ -171,8 +171,9 @@ class DeepActionEvaluator implements ActionEvaluator {
         for(const ae of updatedEvaluations) {
             const v = vectorizeTurnInfo(battleInfo, ae.playerAction, true)
             const t = tf.tensor(v, [1, v.length])
-            const p = this.model.predict(t)[0]
-            updatedEvaluations.evaluation = p
+            // @ts-ignore
+            const p = this.model.predict(t).dataSync()[0]
+            ae.evaluation = p
         }
         return updatedEvaluations
     }

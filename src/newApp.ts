@@ -112,16 +112,16 @@ async function train(model: tf.LayersModel, turnResults) {
     const inputL = vectorizeTurnInfo(null,null, false).length
     await model.fit(tf.tensor(xs, [turnResults.length, inputL]), tf.tensor(ys, [turnResults.length, 1]),
         {
-            epochs: 100,
+            epochs: 200,
             batchSize: 32
         }
     )
 }
 
-const TRAIN = true
-const p1Gen = "deepTrain"
-const p2Gen = "deepTrain"
-const RUNS = 10
+const TRAIN = false
+const p1Gen = "deepPlay"
+const p2Gen = "random"
+const RUNS = 1
 const BATTLES = 100
 
 const PLAYER_GEN_MAP = {
