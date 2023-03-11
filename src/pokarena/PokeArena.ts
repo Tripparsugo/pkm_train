@@ -156,6 +156,7 @@ class Arena {
         this.battleLog.push(command)
         return command
 
+
     }
 
     private handleRequest(s) {

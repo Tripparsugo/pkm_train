@@ -44,6 +44,7 @@ class BestPicker implements ActionPicker {
         let bestAction = null
         for (const me of moveEvaluations) {
             if (me.evaluation > max) {
+                max = me.evaluation
                 bestAction = me.playerAction
             }
         }

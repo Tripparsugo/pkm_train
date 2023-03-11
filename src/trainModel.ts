@@ -2,7 +2,7 @@ import {Arena} from "./pokarena/PokeArena";
 import {getLatestModelOrCreateNew, makeLatestDeepPlayer, makeRandomPlayer, makeStandardPlayer} from "./pokarena/Player";
 // @ts-ignore
 import {Dex, Pokemon} from "pokemon-showdown";
-import {BattleRecord, PokemonSet} from "./pokarena/pt";
+import {BattleInfo, BattleRecord, PokemonSet} from "./pokarena/pt";
 import {convertToCSV, saveLatestModel} from "./pokarena/utils";
 import * as fs from "fs";
 import {vectorizeTurnInfo} from "./pokarena/vectorization";
@@ -43,31 +43,97 @@ function computeReward(pokemonLeft, otherPokemonLeft, won) {
     return 0.5 * Math.exp(-otherPokemonLeft + 1)
 }
 
-async function doBattle(p1, p2) {
-    const turnResults = []
-
-    function recordVectorization(activePlayer, battleInfo, request, playerAction) {
-        const player = activePlayer
-        const v = vectorizeTurnInfo(battleInfo, playerAction, true).map(x => x.toFixed(2))
-        turnResults.push({player, v})
+function computeRewards2(playerTurns: any[], won): number[] {
+    const EVALUATION_WINDOW_SIZE = 7
+    const rewards = []
+    for (let i = 0; i < playerTurns.length; i++) {
+        const evaluationWindow = playerTurns.slice(i, i + EVALUATION_WINDOW_SIZE)
+        for(let j = 0; j < EVALUATION_WINDOW_SIZE; j ++){
+            // computeAdjacentStateDiff(evaluationWindow)
+        }
     }
 
-    const battleResults = await new Arena(p1, p2, recordVectorization, false).doBattle()
+    return rewards
+
+}
+
+
+function computeStateValue(s) {
+    let ownTotalPercentage = 0
+    for (const p of s.ownPokemonStates) {
+        ownTotalPercentage += p.hpPercentage
+    }
+    let otherTotalPercentage = 0
+    for (const p of s.otherPokemonStates) {
+        otherTotalPercentage += p.hpPercentage
+    }
+
+    const stateValue = (ownTotalPercentage - otherTotalPercentage) / 6
+    return stateValue
+
+}
+
+function computeAdjacentStateDiff(s1, s2, won: boolean) {
+    if (!s2) {
+        if (!s1) {
+            return 0
+        }
+        return won ? 1 : -1
+    }
+    const [s1v, s2v] = [computeStateValue(s1), computeStateValue(s2)]
+    const v = (s2v - s1v) * 6
+    return v
+
+
+}
+
+
+function battleInfoToTurnState(battleInfo: BattleInfo) {
+    const ownPokemonStates = battleInfo.playerSide.map(p => {
+        return {hpPercentage: p.hp / p.maxhp}
+    })
+    const otherPokemonStates = battleInfo.opponentSide.map(p => {
+        return {
+            hpPercentage: p.hpPercentage
+        }
+    })
+    for (let i = otherPokemonStates.length; i < 6; i++) {
+        otherPokemonStates.push(
+            {hpPercentage: 1}
+        )
+    }
+
+    return {ownPokemonStates, otherPokemonStates}
+
+}
+
+async function doBattle(p1, p2, battleId) {
+    const turnResults = []
+
+    function record(activePlayer, battleInfo, request, playerAction) {
+        const player = activePlayer
+        const v = vectorizeTurnInfo(battleInfo, playerAction, true).map(x => x.toFixed(2))
+        const s = battleInfoToTurnState(battleInfo)
+        turnResults.push({player, v, s})
+    }
+
+    const battleResults = await new Arena(p1, p2, record, false).doBattle()
 
     for (const tr of turnResults) {
         const won = battleResults.winner === tr.player
         const [ownLeft, otherLeft] = won ? [battleResults.winnerLeftNum, battleResults.loserLeftNum]
             : [battleResults.loserLeftNum, battleResults.winnerLeftNum]
+        tr.battleId = battleId
         tr.reward = computeReward(ownLeft, otherLeft, won)
     }
     return {battleResults, turnResults}
 }
 
-async function doBattles(p1, p2, n) {
+async function doBattles(p1gen, p2gen, n) {
     let rs = []
     for (let i = 0; i < n; i++) {
         try {
-            rs.push(await doBattle(p1, p2))
+            rs.push(await doBattle(await p1gen(), await p2gen(), i))
             if (i % 10 === 0) {
                 console.log(`${i}/${n}`)
             }
@@ -105,37 +171,51 @@ async function handleBattlesEnd(rs: any, model) {
 
 }
 
+const TRAIN = false
+const p1Gen = "random"
+const p2Gen = "deepPlay"
+const RUNS = 1
+const BATTLES = 100
+
+const PLAYER_GEN_MAP = {
+    "deepTrain": async () => await makeLatestDeepPlayer(true),
+    "deepPlay": async () => await makeLatestDeepPlayer(false),
+    "random": async () => await makeRandomPlayer(),
+    "standard": async () => await makeStandardPlayer(),
+}
+
 async function train(model: tf.LayersModel, turnResults) {
-    const xs = turnResults.flatMap(t => t.v).map(t => Number.parseFloat(t))
-    const ys = turnResults.map(t => Number.parseFloat(t.reward))
+    const trainValidationIdSplit = Math.floor(BATTLES * 0.9)
+    const trainData = turnResults.filter(t => t.battleId <= trainValidationIdSplit)
+    const validationData = turnResults.filter(t => t.battleId > trainValidationIdSplit)
+    const xsTrain = trainData.flatMap(t => t.v).map(t => Number.parseFloat(t))
+    const ysTrain = trainData.map(t => Number.parseFloat(t.reward))
+    const xsValidate = validationData.flatMap(t => t.v).map(t => Number.parseFloat(t))
+    const ysValidate = validationData.map(t => Number.parseFloat(t.reward))
     model.compile({optimizer: "sgd", loss: 'meanSquaredError'})
-    const inputL = vectorizeTurnInfo(null,null, false).length
-    await model.fit(tf.tensor(xs, [turnResults.length, inputL]), tf.tensor(ys, [turnResults.length, 1]),
+    const inputL = vectorizeTurnInfo(null, null, false).length
+    await model.fit(tf.tensor(xsTrain, [trainData.length, inputL]), tf.tensor(ysTrain, [trainData.length, 1]),
         {
+            callbacks: tf.callbacks.earlyStopping({
+                patience: 5,
+                monitor: "val_loss"
+            }),
+            validationData: [
+                tf.tensor(xsValidate, [validationData.length, inputL]),
+                tf.tensor(ysValidate, [validationData.length, 1])
+            ],
             epochs: 200,
             batchSize: 32
         }
     )
 }
 
-const TRAIN = false
-const p1Gen = "deepPlay"
-const p2Gen = "random"
-const RUNS = 1
-const BATTLES = 100
-
-const PLAYER_GEN_MAP = {
-    "deepTrain": async ()=> await makeLatestDeepPlayer(true),
-    "deepPlay": async ()=> await makeLatestDeepPlayer(false),
-    "random": async ()=> await makeRandomPlayer(),
-    "standard": async ()=> await makeStandardPlayer(),
-}
 
 async function run() {
     const model = await getLatestModelOrCreateNew()
-    const p1 = await PLAYER_GEN_MAP[p1Gen]()
-    const p2 = await PLAYER_GEN_MAP[p2Gen]()
-    const results = await doBattles(p1, p2, BATTLES)
+    const p1gen = await PLAYER_GEN_MAP[p1Gen]
+    const p2gen = await PLAYER_GEN_MAP[p2Gen]
+    const results = await doBattles(p1gen, p2gen, BATTLES)
     await handleBattlesEnd(results, model)
     const ts = results.flatMap(r => r.turnResults)
     if (TRAIN) {
@@ -150,7 +230,7 @@ async function run() {
 // const i = 0
 async function doRuns() {
     for (let i = 0; i < RUNS; i++) {
-        console.log(`RUN: ${i+1}/${RUNS}`)
+        console.log(`RUN: ${i + 1}/${RUNS}`)
         await run()
     }
 }

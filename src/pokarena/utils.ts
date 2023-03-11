@@ -83,14 +83,20 @@ function normalizeName(name) {
 function getNewModel(): tf.LayersModel {
     const model = tf.sequential();
     const inputL = vectorizeTurnInfo(undefined, undefined, false).length
-    model.add(tf.layers.dense({activation: "relu", units: 300, inputShape: [inputL]}));
+    model.add(tf.layers.dense({activation: "relu", units: 100, inputShape: [inputL]}));
     model.add(tf.layers.dense({activation: "relu", units: 1}));
 // Prepare the model for training: Specify the loss and the optimizer.
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
     return model
 }
 
+
+let model_cache = null
+
 async function getLatestModelOrCreateNew(): Promise<tf.LayersModel> {
+    if (model_cache) {
+        return model_cache
+    }
     const modelsDir = path.resolve("./mod")
     const dirNames = readdirSync(modelsDir, {withFileTypes: true})
         .filter(dirent => dirent.isDirectory())
@@ -100,13 +106,17 @@ async function getLatestModelOrCreateNew(): Promise<tf.LayersModel> {
         const newModel = getNewModel()
         const modelDir = `file://${modelsDir}/0`
         await newModel.save(modelDir)
+        model_cache = newModel
         return newModel
     }
+
     const sortedDirNames = dirNames.sort((a, b) =>
         Number.parseInt(a.split("/").slice(-1)[0]) - Number.parseInt(b.split("/").slice(-1)[0]))
-    const latestDirName = sortedDirNames[sortedDirNames.length - 1]
+    //TODO revert to latest
+    const latestDirName = sortedDirNames[sortedDirNames.length-1]
 
     const latestModel = await tf.loadLayersModel(`file://${latestDirName}/model.json`)
+    model_cache = latestModel
     return latestModel
 }
 
@@ -119,6 +129,7 @@ async function saveLatestModel(model: tf.LayersModel) {
     const nextDirNum = dirNames.length
     const nextDirName = `file://${modelsDir}/${nextDirNum}`
     await model.save(nextDirName)
+    model_cache = null
 
 }
 
