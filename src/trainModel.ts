@@ -7,6 +7,7 @@ import {convertToCSV, saveLatestModel} from "./pokarena/utils";
 import * as fs from "fs";
 import {vectorizeTurnInfo} from "./pokarena/vectorization";
 import * as tf from "@tensorflow/tfjs-node"
+import * as _ from "lodash"
 import {op} from "@tensorflow/tfjs";
 
 
@@ -36,25 +37,36 @@ function toTeamData(team: any, won: boolean, strategy: string) {
     return ds
 }
 
-function computeReward(pokemonLeft, otherPokemonLeft, won) {
-    if (won) {
-        return 0.5 + 0.5 * pokemonLeft / 6
-    }
-    return 0.5 * Math.exp(-otherPokemonLeft + 1)
-}
+// function computeReward(pokemonLeft, otherPokemonLeft, won) {
+//     if (won) {
+//         return 0.5 + 0.5 * pokemonLeft / 6
+//     }
+//     return 0.5 * Math.exp(-otherPokemonLeft + 1)
+// }
 
 function computeRewards2(playerTurns: any[], won): number[] {
     const EVALUATION_WINDOW_SIZE = 7
+    const ALPHA = 0.7
     const rewards = []
+
+    let maxReward = 0
+    for (let i = 0; i < EVALUATION_WINDOW_SIZE - 1; i++) {
+        maxReward += Math.pow(ALPHA, i)
+    }
+
     for (let i = 0; i < playerTurns.length; i++) {
         const evaluationWindow = playerTurns.slice(i, i + EVALUATION_WINDOW_SIZE)
-        for(let j = 0; j < EVALUATION_WINDOW_SIZE; j ++){
-            // computeAdjacentStateDiff(evaluationWindow)
+        let reward = 0
+        for (let j = 0; j < EVALUATION_WINDOW_SIZE - 1; j++) {
+            const tmp = computeAdjacentStateDiff(evaluationWindow[j], evaluationWindow[j + 1], won) * Math.pow(ALPHA, j)
+            reward += tmp
         }
+        reward /= maxReward
+        reward = (reward * 0.95) + (won ? 0.05 : -0.05)
+        rewards.push(reward)
     }
 
     return rewards
-
 }
 
 
@@ -84,7 +96,6 @@ function computeAdjacentStateDiff(s1, s2, won: boolean) {
     const v = (s2v - s1v) * 6
     return v
 
-
 }
 
 
@@ -109,22 +120,34 @@ function battleInfoToTurnState(battleInfo: BattleInfo) {
 
 async function doBattle(p1, p2, battleId) {
     const turnResults = []
+    const players = [p1, p2]
 
     function record(activePlayer, battleInfo, request, playerAction) {
         const player = activePlayer
         const v = vectorizeTurnInfo(battleInfo, playerAction, true).map(x => x.toFixed(2))
         const s = battleInfoToTurnState(battleInfo)
+        // const tmp = _.cloneDeep(battleInfo)
         turnResults.push({player, v, s})
     }
 
     const battleResults = await new Arena(p1, p2, record, false).doBattle()
 
     for (const tr of turnResults) {
-        const won = battleResults.winner === tr.player
-        const [ownLeft, otherLeft] = won ? [battleResults.winnerLeftNum, battleResults.loserLeftNum]
-            : [battleResults.loserLeftNum, battleResults.winnerLeftNum]
+        // const won = battleResults.winner === tr.player
+        // const [ownLeft, otherLeft] = won ? [battleResults.winnerLeftNum, battleResults.loserLeftNum]
+        //     : [battleResults.loserLeftNum, battleResults.winnerLeftNum]
         tr.battleId = battleId
-        tr.reward = computeReward(ownLeft, otherLeft, won)
+        // tr.reward = computeReward(ownLeft, otherLeft, won)
+    }
+
+    for (const p of players) {
+        const pWon = battleResults.winner === p
+        const pTurnResults = turnResults.filter(tr => tr.player === p)
+        const pStates = pTurnResults.map(r => r.s)
+        const pRewards = computeRewards2(pStates, pWon)
+        for (let i = 0; i < pTurnResults.length; i++) {
+            pTurnResults[i].r = pRewards[i]
+        }
     }
     return {battleResults, turnResults}
 }
@@ -172,10 +195,10 @@ async function handleBattlesEnd(rs: any, model) {
 }
 
 const TRAIN = false
-const p1Gen = "random"
-const p2Gen = "deepPlay"
-const RUNS = 1
-const BATTLES = 100
+const p1Gen = "deepTrain"
+const p2Gen = "deepTrain"
+const RUNS = 10
+const BATTLES = 300
 
 const PLAYER_GEN_MAP = {
     "deepTrain": async () => await makeLatestDeepPlayer(true),

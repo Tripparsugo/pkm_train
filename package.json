@@ -6,6 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "main": "node app.js",
+    "trainModel": "ts-node src/trainModel.ts",
     "newMain": "ts-node  src/trainModel.ts",
     "hi": "node count_lines.js",
     "hello": "ts-node  hello.ts",

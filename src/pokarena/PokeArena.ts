@@ -66,7 +66,7 @@ class Arena {
 
         for (const p of otherTeam) {
             //never seen pkm
-            if (p.activeTurns === 0 && !p.isActive) {
+            if (p.activeTurns === 0 && !p.isActive && !p.previouslySwitchedIn && (p.hp === p.maxhp)) {
                 continue
             }
             const species = p.species

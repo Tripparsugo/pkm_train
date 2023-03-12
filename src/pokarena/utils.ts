@@ -112,7 +112,6 @@ async function getLatestModelOrCreateNew(): Promise<tf.LayersModel> {
 
     const sortedDirNames = dirNames.sort((a, b) =>
         Number.parseInt(a.split("/").slice(-1)[0]) - Number.parseInt(b.split("/").slice(-1)[0]))
-    //TODO revert to latest
     const latestDirName = sortedDirNames[sortedDirNames.length-1]
 
     const latestModel = await tf.loadLayersModel(`file://${latestDirName}/model.json`)
