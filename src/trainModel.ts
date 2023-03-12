@@ -9,6 +9,7 @@ import {vectorizeTurnInfo} from "./pokarena/vectorization";
 import * as tf from "@tensorflow/tfjs-node"
 import * as _ from "lodash"
 import {op} from "@tensorflow/tfjs";
+import * as math from 'mathjs'
 
 
 Dex.includeFormats()
@@ -61,8 +62,13 @@ function computeRewards2(playerTurns: any[], won): number[] {
             const tmp = computeAdjacentStateDiff(evaluationWindow[j], evaluationWindow[j + 1], won) * Math.pow(ALPHA, j)
             reward += tmp
         }
+        //TODO using maxReward; now it's in [-1,1]
         reward /= maxReward
-        reward = (reward * 0.95) + (won ? 0.05 : -0.05)
+        // reward = (reward * 0.95) + (won ? 0.05 : -0.05)
+        //in [0,1]
+        // reward = (reward) / 2
+        //
+        reward *= 2
         rewards.push(reward)
     }
 
@@ -146,7 +152,7 @@ async function doBattle(p1, p2, battleId) {
         const pStates = pTurnResults.map(r => r.s)
         const pRewards = computeRewards2(pStates, pWon)
         for (let i = 0; i < pTurnResults.length; i++) {
-            pTurnResults[i].r = pRewards[i]
+            pTurnResults[i].reward = pRewards[i]
         }
     }
     return {battleResults, turnResults}
@@ -194,11 +200,11 @@ async function handleBattlesEnd(rs: any, model) {
 
 }
 
-const TRAIN = false
+const TRAIN = true
 const p1Gen = "deepTrain"
 const p2Gen = "deepTrain"
-const RUNS = 10
-const BATTLES = 300
+const RUNS = 1
+const BATTLES = 30
 
 const PLAYER_GEN_MAP = {
     "deepTrain": async () => await makeLatestDeepPlayer(true),
@@ -215,12 +221,14 @@ async function train(model: tf.LayersModel, turnResults) {
     const ysTrain = trainData.map(t => Number.parseFloat(t.reward))
     const xsValidate = validationData.flatMap(t => t.v).map(t => Number.parseFloat(t))
     const ysValidate = validationData.map(t => Number.parseFloat(t.reward))
-    model.compile({optimizer: "sgd", loss: 'meanSquaredError'})
+    const yMean = math.mean(ysTrain)
+    const yStd = math.std(ysTrain)
+    model.compile({optimizer: "sgd", loss: tf.losses.absoluteDifference})
     const inputL = vectorizeTurnInfo(null, null, false).length
     await model.fit(tf.tensor(xsTrain, [trainData.length, inputL]), tf.tensor(ysTrain, [trainData.length, 1]),
         {
             callbacks: tf.callbacks.earlyStopping({
-                patience: 5,
+                patience: 10,
                 monitor: "val_loss"
             }),
             validationData: [
@@ -231,6 +239,9 @@ async function train(model: tf.LayersModel, turnResults) {
             batchSize: 32
         }
     )
+    // @ts-ignore
+    // const a = model.predict(tf.tensor(xsValidate, [validationData.length, inputL])).dataSync()
+    // const b = 0
 }
 
 

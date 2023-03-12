@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "main": "node app.js",
-    "trainModel": "ts-node src/trainModel.ts",
-    "newMain": "ts-node  src/trainModel.ts",
+    "trainModel": "NODE_OPTIONS='--max-old-space-size=4128'  ts-node  src/trainModel.ts",
+    "debugTrainModel": "ts-node  src/trainModel.ts",
     "hi": "node count_lines.js",
     "hello": "ts-node  hello.ts",
     "postinstall": "npm run typings",
@@ -22,6 +22,7 @@
     "bindings": "^1.5.0",
     "gyp": "^0.5.0",
     "lodash": "^4.17.21",
+    "mathjs": "^11.6.0",
     "node-cleanup": "^2.1.2",
     "node-gyp": "^9.3.1",
     "pokemon-showdown": "^0.11.7"

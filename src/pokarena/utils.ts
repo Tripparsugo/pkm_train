@@ -82,11 +82,12 @@ function normalizeName(name) {
 
 function getNewModel(): tf.LayersModel {
     const model = tf.sequential();
+    const optimizer = tf.train.sgd(0.0005)
     const inputL = vectorizeTurnInfo(undefined, undefined, false).length
-    model.add(tf.layers.dense({activation: "relu", units: 100, inputShape: [inputL]}));
-    model.add(tf.layers.dense({activation: "relu", units: 1}));
+    model.add(tf.layers.dense({activation: "relu", units: 400, inputShape: [inputL]}));
+    model.add(tf.layers.dense({activation: "sigmoid", units: 1}));
 // Prepare the model for training: Specify the loss and the optimizer.
-    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+    model.compile({loss: 'meanSquaredError', optimizer: optimizer});
     return model
 }
 
@@ -112,7 +113,7 @@ async function getLatestModelOrCreateNew(): Promise<tf.LayersModel> {
 
     const sortedDirNames = dirNames.sort((a, b) =>
         Number.parseInt(a.split("/").slice(-1)[0]) - Number.parseInt(b.split("/").slice(-1)[0]))
-    const latestDirName = sortedDirNames[sortedDirNames.length-1]
+    const latestDirName = sortedDirNames[sortedDirNames.length - 1]
 
     const latestModel = await tf.loadLayersModel(`file://${latestDirName}/model.json`)
     model_cache = latestModel
