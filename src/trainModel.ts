@@ -200,11 +200,11 @@ async function handleBattlesEnd(rs: any, model) {
 
 }
 
-const TRAIN = true
+const TRAIN = false
 const p1Gen = "deepTrain"
 const p2Gen = "deepTrain"
-const RUNS = 1
-const BATTLES = 30
+const RUNS = 100
+const BATTLES = 300
 
 const PLAYER_GEN_MAP = {
     "deepTrain": async () => await makeLatestDeepPlayer(true),
@@ -235,13 +235,13 @@ async function train(model: tf.LayersModel, turnResults) {
                 tf.tensor(xsValidate, [validationData.length, inputL]),
                 tf.tensor(ysValidate, [validationData.length, 1])
             ],
-            epochs: 200,
+            epochs: 500,
             batchSize: 32
         }
     )
     // @ts-ignore
-    // const a = model.predict(tf.tensor(xsValidate, [validationData.length, inputL])).dataSync()
-    // const b = 0
+    const a = model.predict(tf.tensor(xsValidate, [validationData.length, inputL])).dataSync()
+    const b = 0
 }
 
 
@@ -278,3 +278,8 @@ doRuns().then(
 )
 
 
+
+
+export {
+doBattles
+}

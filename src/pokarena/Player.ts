@@ -11,7 +11,7 @@ import * as tf from "@tensorflow/tfjs-node"
 import {BestPicker, RandomPicker, SoftmaxPicker} from "./Pickers";
 // import * as brain from "brain.js"
 import * as fs from "fs"
-import {getLatestModelOrCreateNew} from "./utils";
+import {getLatestModelOrCreateNew, loadModel} from "./utils";
 
 const FORMAT = ""
 
@@ -49,8 +49,6 @@ class ConcretePlayer implements Player {
 }
 
 
-
-
 function makeRandomPlayer(): Player {
     const team = Teams.generate(FORMAT)
     const player = new ConcretePlayer("random", team, new IdentityEvaluator(), new RandomPicker())
@@ -77,8 +75,18 @@ async function makeLatestDeepPlayer(training: boolean): Promise<Player> {
 }
 
 
+async function makeDeepPlayer(modelLoc: string): Promise<Player> {
+    const model = await loadModel(modelLoc)
+    const ev = new DeepActionEvaluator(model)
+    const picker = new BestPicker()
+    const team = Teams.generate(FORMAT)
+    const player = new ConcretePlayer("deep", team, ev, picker)
+    return player
+
+}
+
 function makePlayer(randomPlayerChance: number,): Player {
     return null
 }
 
-export {makeRandomPlayer, makeStandardPlayer, makeLatestDeepPlayer, getLatestModelOrCreateNew}
+export {makeRandomPlayer, makeStandardPlayer, makeLatestDeepPlayer, getLatestModelOrCreateNew, makeDeepPlayer}

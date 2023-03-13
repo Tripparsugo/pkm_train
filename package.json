@@ -8,6 +8,7 @@
     "main": "node app.js",
     "trainModel": "NODE_OPTIONS='--max-old-space-size=4128'  ts-node  src/trainModel.ts",
     "debugTrainModel": "ts-node  src/trainModel.ts",
+    "testModel": "NODE_OPTIONS='--max-old-space-size=4128' ts-node  src/testModel.ts",
     "hi": "node count_lines.js",
     "hello": "ts-node  hello.ts",
     "postinstall": "npm run typings",

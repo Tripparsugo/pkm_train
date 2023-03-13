@@ -84,8 +84,8 @@ function getNewModel(): tf.LayersModel {
     const model = tf.sequential();
     const optimizer = tf.train.sgd(0.0005)
     const inputL = vectorizeTurnInfo(undefined, undefined, false).length
-    model.add(tf.layers.dense({activation: "relu", units: 400, inputShape: [inputL]}));
-    model.add(tf.layers.dense({activation: "sigmoid", units: 1}));
+    model.add(tf.layers.dense({activation: "relu", units: 200, inputShape: [inputL]}));
+    model.add(tf.layers.dense({activation: "softsign", units: 1}));
 // Prepare the model for training: Specify the loss and the optimizer.
     model.compile({loss: 'meanSquaredError', optimizer: optimizer});
     return model
@@ -121,6 +121,25 @@ async function getLatestModelOrCreateNew(): Promise<tf.LayersModel> {
 }
 
 
+function getSortedModelLocs(): string[] {
+    const modelsDir = path.resolve("./mod")
+    const dirNames = readdirSync(modelsDir, {withFileTypes: true})
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => `${modelsDir}/${dirent.name}`)
+
+    const sortedDirNames = dirNames.sort((a, b) =>
+        Number.parseInt(a.split("/").slice(-1)[0]) - Number.parseInt(b.split("/").slice(-1)[0]))
+
+    return sortedDirNames
+}
+
+
+
+async function loadModel(modelLoc: string): Promise<tf.LayersModel>{
+    const latestModel = await tf.loadLayersModel(`file://${modelLoc}/model.json`)
+    return latestModel
+}
+
 async function saveLatestModel(model: tf.LayersModel) {
     const modelsDir = path.resolve("./mod")
     const dirNames = readdirSync(modelsDir, {withFileTypes: true})
@@ -142,6 +161,8 @@ export {
     oneHotEncode,
     normalizeName,
     getLatestModelOrCreateNew,
-    saveLatestModel
+    saveLatestModel,
+    getSortedModelLocs,
+    loadModel
 }
 
