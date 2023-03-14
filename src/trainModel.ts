@@ -200,7 +200,7 @@ async function handleBattlesEnd(rs: any, model) {
 
 }
 
-const TRAIN = false
+const TRAIN = true
 const p1Gen = "deepTrain"
 const p2Gen = "deepTrain"
 const RUNS = 100

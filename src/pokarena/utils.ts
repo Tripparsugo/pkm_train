@@ -84,7 +84,7 @@ function getNewModel(): tf.LayersModel {
     const model = tf.sequential();
     const optimizer = tf.train.sgd(0.0005)
     const inputL = vectorizeTurnInfo(undefined, undefined, false).length
-    model.add(tf.layers.dense({activation: "relu", units: 200, inputShape: [inputL]}));
+    model.add(tf.layers.dense({activation: "relu", units: 500, inputShape: [inputL]}));
     model.add(tf.layers.dense({activation: "softsign", units: 1}));
 // Prepare the model for training: Specify the loss and the optimizer.
     model.compile({loss: 'meanSquaredError', optimizer: optimizer});

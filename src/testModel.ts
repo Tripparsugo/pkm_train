@@ -10,7 +10,7 @@ async function run() {
     const opponents = [makeStandardPlayer, makeRandomPlayer]
     const data = []
 
-    for (let i = 0; i < modelN; i += 2) {
+    for (let i = 0; i < modelN; i += 5) {
         console.log(`ROUND ${i}/${modelN}`)
         const modelLoc = modelLocs[i]
         const deepPlayerGen = () => makeDeepPlayer(modelLoc)
