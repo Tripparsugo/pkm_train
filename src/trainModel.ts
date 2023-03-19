@@ -5,7 +5,7 @@ import {Dex, Pokemon} from "pokemon-showdown";
 import {BattleInfo, BattleRecord, PokemonSet} from "./pokarena/pt";
 import {convertToCSV, saveLatestModel} from "./pokarena/utils";
 import * as fs from "fs";
-import {vectorizeTurnInfo} from "./pokarena/vectorization";
+import {vectorizeBattleInfo} from "./pokarena/vectorization";
 import * as tf from "@tensorflow/tfjs-node"
 import * as _ from "lodash"
 import {op} from "@tensorflow/tfjs";
@@ -127,24 +127,21 @@ function battleInfoToTurnState(battleInfo: BattleInfo) {
 async function doBattle(p1, p2, battleId) {
     const turnResults = []
     const players = [p1, p2]
+    for (let p of players) {
+        p.setTurnCallback(record)
+    }
 
-    function record(activePlayer, battleInfo, request, playerAction) {
+
+    function record(activePlayer, battleInfo, evaluations, playerAction) {
         const player = activePlayer
-        const v = vectorizeTurnInfo(battleInfo, playerAction, true).map(x => x.toFixed(2))
+        const v = vectorizeBattleInfo(battleInfo, true).map(x => x.toFixed(2))
         const s = battleInfoToTurnState(battleInfo)
         // const tmp = _.cloneDeep(battleInfo)
-        turnResults.push({player, v, s})
+        turnResults.push({player, v, s, evaluations, playerAction, battleId})
     }
 
-    const battleResults = await new Arena(p1, p2, record, false).doBattle()
 
-    for (const tr of turnResults) {
-        // const won = battleResults.winner === tr.player
-        // const [ownLeft, otherLeft] = won ? [battleResults.winnerLeftNum, battleResults.loserLeftNum]
-        //     : [battleResults.loserLeftNum, battleResults.winnerLeftNum]
-        tr.battleId = battleId
-        // tr.reward = computeReward(ownLeft, otherLeft, won)
-    }
+    const battleResults = await new Arena(p1, p2, false).doBattle()
 
     for (const p of players) {
         const pWon = battleResults.winner === p
@@ -158,11 +155,11 @@ async function doBattle(p1, p2, battleId) {
     return {battleResults, turnResults}
 }
 
-async function doBattles(p1gen, p2gen, n) {
+async function doBattles(p1, p2, n) {
     let rs = []
     for (let i = 0; i < n; i++) {
         try {
-            rs.push(await doBattle(await p1gen(), await p2gen(), i))
+            rs.push(await doBattle(p1, p2, i))
             if (i % 10 === 0) {
                 console.log(`${i}/${n}`)
             }
@@ -200,32 +197,39 @@ async function handleBattlesEnd(rs: any, model) {
 
 }
 
-const TRAIN = true
+const TRAIN = false
 const p1Gen = "deepTrain"
 const p2Gen = "deepTrain"
-const RUNS = 100
-const BATTLES = 300
+const RUNS = 1
+const BATTLES = 10
 
 const PLAYER_GEN_MAP = {
     "deepTrain": async () => await makeLatestDeepPlayer(true),
     "deepPlay": async () => await makeLatestDeepPlayer(false),
-    "random": async () => await makeRandomPlayer(),
+    "random": async () => await makeRandomPlayer((a, b, c) => null),
     "standard": async () => await makeStandardPlayer(),
 }
 
 async function train(model: tf.LayersModel, turnResults) {
+    const data = []
+    for(let tr of turnResults){
+        const x = tr.v
+        const y = tr.evaluations.slice(0,10).map(e=> e.evaluatio)
+        const battleId = tr.battleId
+        data.push({x, y, battleId})
+    }
     const trainValidationIdSplit = Math.floor(BATTLES * 0.9)
-    const trainData = turnResults.filter(t => t.battleId <= trainValidationIdSplit)
-    const validationData = turnResults.filter(t => t.battleId > trainValidationIdSplit)
-    const xsTrain = trainData.flatMap(t => t.v).map(t => Number.parseFloat(t))
-    const ysTrain = trainData.map(t => Number.parseFloat(t.reward))
-    const xsValidate = validationData.flatMap(t => t.v).map(t => Number.parseFloat(t))
-    const ysValidate = validationData.map(t => Number.parseFloat(t.reward))
+    const trainData = data.filter(d => d.battleId <= trainValidationIdSplit)
+    const validationData = data.filter(d => d.battleId > trainValidationIdSplit)
+    const xsTrain = trainData.flatMap(d => d.x)
+    const ysTrain = trainData.flatMap(d => d.y)
+    const xsValidate = validationData.flatMap(d => d.x)
+    const ysValidate = validationData.flatMap(d => d.y)
     const yMean = math.mean(ysTrain)
     const yStd = math.std(ysTrain)
     model.compile({optimizer: "sgd", loss: tf.losses.absoluteDifference})
-    const inputL = vectorizeTurnInfo(null, null, false).length
-    await model.fit(tf.tensor(xsTrain, [trainData.length, inputL]), tf.tensor(ysTrain, [trainData.length, 1]),
+    const inputL = vectorizeBattleInfo(null, false).length
+    await model.fit(tf.tensor(xsTrain, [trainData.length, inputL]), tf.tensor(ysTrain, [trainData.length, 9]),
         {
             callbacks: tf.callbacks.earlyStopping({
                 patience: 10,
@@ -247,9 +251,9 @@ async function train(model: tf.LayersModel, turnResults) {
 
 async function run() {
     const model = await getLatestModelOrCreateNew()
-    const p1gen = await PLAYER_GEN_MAP[p1Gen]
-    const p2gen = await PLAYER_GEN_MAP[p2Gen]
-    const results = await doBattles(p1gen, p2gen, BATTLES)
+    const p1 = await PLAYER_GEN_MAP[p1Gen]()
+    const p2 = await PLAYER_GEN_MAP[p2Gen]()
+    const results = await doBattles(p1, p2, BATTLES)
     await handleBattlesEnd(results, model)
     const ts = results.flatMap(r => r.turnResults)
     if (TRAIN) {
@@ -278,8 +282,6 @@ doRuns().then(
 )
 
 
-
-
 export {
-doBattles
+    doBattles
 }

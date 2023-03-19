@@ -86,18 +86,18 @@ const FIELD_CONDITIONS = [
 const BOOST_TARGETS = ["atk", "spa", "def", "def", "spd", "spe"]
 const STATS = ["hp", ...BOOST_TARGETS]
 
-function vectorizeTurnInfo(battleInfo: BattleInfo, playerAction: PlayerAction, valid: boolean): number[] {
+function vectorizeBattleInfo(battleInfo: BattleInfo, valid: boolean): number[] {
     if (!valid) {
         const size = FIELD_CONDITIONS.length * 2 + WEATHER_STATUSES.length
-            + vectorizePlayerPokemon(null, null, false).length
-            + vectorizePlayerPokemonShort(null, null, false).length * 5
+            + vectorizePlayerPokemon(null, false).length
+            + vectorizePlayerPokemonShort(null, false).length * 5
             + vectorizeOpponentPokemon(null, false).length
             + vectorizeOpponentPokemonShort(null, false).length * 5
         return new Array(size).fill(0)
     }
-    const weatherEncoding = oneHotEncode(WEATHER_STATUSES, battleInfo.weather)
-    const allyFieldEncoding = oneHotEncode(FIELD_CONDITIONS, battleInfo.playerFieldConditions[0] ?? "")
-    const enemyFieldEncoding = oneHotEncode(FIELD_CONDITIONS, battleInfo.enemyFieldConditions[0] ?? "")
+    const weatherEncoding = oneHotEncode(WEATHER_STATUSES, [battleInfo.weather])
+    const allyFieldEncoding = oneHotEncode(FIELD_CONDITIONS, [battleInfo.playerFieldConditions[0] ?? ""])
+    const enemyFieldEncoding = oneHotEncode(FIELD_CONDITIONS, [battleInfo.enemyFieldConditions[0] ?? ""])
 
     let encoding = [
         ...weatherEncoding,
@@ -107,7 +107,7 @@ function vectorizeTurnInfo(battleInfo: BattleInfo, playerAction: PlayerAction, v
 
     for (let i = 0; i < 6; i++) {
         const p = battleInfo.playerSide[i]
-        const v1 = i == 0 ? vectorizePlayerPokemon(p, playerAction, !!p) : vectorizePlayerPokemonShort(p, playerAction, !!p)
+        const v1 = i == 0 ? vectorizePlayerPokemon(p, !!p) : vectorizePlayerPokemonShort(p, !!p)
         encoding = encoding.concat(v1)
     }
 
@@ -138,7 +138,7 @@ function vectorizeOpponentPokemonShort(pokemon: any, valid) {
     }
     const typesEncoding = oneHotEncode(POKEMON_TYPES, pokemon.species.types)
     const hpPercentage = pokemon.hpPercentage
-    const statusEncoding = oneHotEncode(POKEMON_STATUSES, pokemon.status)
+    const statusEncoding = oneHotEncode(POKEMON_STATUSES, [pokemon.status])
     const encoding = [
         ...statusEncoding,
         ...statEncoding,
@@ -151,12 +151,12 @@ function vectorizeOpponentPokemonShort(pokemon: any, valid) {
 
 function vectorizeOpponentPokemon(pokemon: any, valid) {
     if (!valid) {
-        const size = vectorizeOpponentPokemonShort(pokemon, valid).length + vectorizeDexMove(undefined, false).length * 6
+        const size = vectorizeOpponentPokemonShort(pokemon, valid).length + vectorizeDexMove(undefined, false).length * 4
         return new Array(size).fill(0)
     }
     const shortEnconding = vectorizeOpponentPokemonShort(pokemon, valid)
     let moves = []
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 4; i++) {
         const move = pokemon?.potentialMoves[i]
         const vMove = vectorizeDexMove(move, !!move)
         moves = moves.concat(vMove)
@@ -174,14 +174,14 @@ function vectorizeOpponentPokemon(pokemon: any, valid) {
 }
 
 
-function vectorizePlayerPokemonShort(pokemon: any, playerAction: PlayerAction, valid) {
+function vectorizePlayerPokemonShort(pokemon: any, valid) {
     if (!valid) {
-        const size = 5 + POKEMON_STATUSES.length + POKEMON_ABILITIES.length + ITEMS.length + POKEMON_TYPES.length
+        const size = 4 + POKEMON_STATUSES.length + POKEMON_ABILITIES.length + ITEMS.length + POKEMON_TYPES.length
         const v = new Array(size).fill(0)
         return v
     }
     // TODO make sure this is correct
-    const isSelectedSwap = playerAction.type === MoveType.SWAP && playerAction.swapTarget === pokemon.species.id
+    // const isSelectedSwap = playerAction.type === MoveType.SWAP && playerAction.swapTarget === pokemon.species.id
     const ability = normalizeName(pokemon.ability)
     const abilityEncoding = oneHotEncode(POKEMON_ABILITIES, [ability])
     const item = normalizeName(pokemon.item)
@@ -196,14 +196,14 @@ function vectorizePlayerPokemonShort(pokemon: any, playerAction: PlayerAction, v
     for (const s of STATS) {
         statEncoding.push(pokemon.baseStoredStats[s] / 255)
     }
-    const statusEncoding = oneHotEncode(POKEMON_STATUSES, pokemon.status)
+    const statusEncoding = oneHotEncode(POKEMON_STATUSES, [pokemon.status])
     const hp = pokemon.hp / 714
     const maxhp = pokemon.maxhp / 714
 
     //TODO add status
     const ret = [
         valid ? 1 : 0,
-        isSelectedSwap ? 1 : 0,
+        // isSelectedSwap ? 1 : 0,
         pokemon.isActive ? 1 : 0,
         hp,
         maxhp,
@@ -216,19 +216,19 @@ function vectorizePlayerPokemonShort(pokemon: any, playerAction: PlayerAction, v
 
 }
 
-function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid) {
+function vectorizePlayerPokemon(pokemon: any, valid) {
     if (!valid) {
-        const size = vectorizePlayerPokemonShort(undefined, undefined, false).length
-            + vectorizePlayerMove(undefined, playerAction, false).length * 4
+        const size = vectorizePlayerPokemonShort(undefined, false).length
+            + vectorizePlayerMove(undefined, false).length * 4
         const v = new Array(size).fill(0)
         return v
     }
-    const shortEncoding = vectorizePlayerPokemonShort(pokemon, playerAction, valid)
+    const shortEncoding = vectorizePlayerPokemonShort(pokemon, valid)
     let movesEncoding = []
     // const pokemon.moves
     for (let i = 0; i < 4; i++) {
         const slot = pokemon.moveSlots[i]
-        movesEncoding = movesEncoding.concat(vectorizePlayerMove(slot, playerAction, !!slot))
+        movesEncoding = movesEncoding.concat(vectorizePlayerMove(slot, !!slot))
     }
 
     const ret = [
@@ -244,12 +244,12 @@ function vectorizePlayerPokemon(pokemon: any, playerAction: PlayerAction, valid)
     return ret
 }
 
-function vectorizePlayerMove(move, playerAction: PlayerAction, valid) {
+function vectorizePlayerMove(move, valid) {
     if (!valid) {
-        const size = 6 + vectorizeDexMove(undefined, false).length
+        const size = 5 + vectorizeDexMove(undefined, false).length
         return new Array(size).fill(0)
     }
-    const isSelectedMove = playerAction.type === MoveType.ATTACK && playerAction.moveTarget === move.id
+    // const isSelectedMove = playerAction.type === MoveType.ATTACK && playerAction.moveTarget === move.id
     const pp = move.pp / 40
     const maxpp = move.maxpp / 40
     const disabled = move.disabled ? 1 : 0
@@ -258,7 +258,7 @@ function vectorizePlayerMove(move, playerAction: PlayerAction, valid) {
     const vDexMove = vectorizeDexMove(dexMove, valid)
     // console.log(vDexMove.length)
     return [
-        isSelectedMove ? 1 : 0,
+        // isSelectedMove ? 1 : 0,
         valid ? 1 : 0,
         pp,
         maxpp,
@@ -316,4 +316,4 @@ function vectorizeDexMove(dexMove: any, valid: boolean): number[] {
 }
 
 
-export {vectorizeTurnInfo}
+export {vectorizeBattleInfo}

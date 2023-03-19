@@ -7,8 +7,7 @@ interface Arena {
 
 }
 
-
-type ActionEvaluation = {playerAction: PlayerAction, evaluation: number}
+type ActionEvaluation = {playerAction: PlayerAction, evaluation: number, readonly available: boolean}
 
 type PlayerAction = { readonly type: MoveType, moveTarget?: string , swapTarget?: string}
 
@@ -38,7 +37,7 @@ interface Player {
     id: string
     readonly team: PokemonSet[]
     pickMove(battleInfo: BattleInfo, forceSwitch: boolean): PlayerAction
-    readonly strategy: string
+    readonly strategy: string,
 }
 
 interface BattleRecord {

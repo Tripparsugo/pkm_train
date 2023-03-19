@@ -1,9 +1,9 @@
-import {ActionEvaluator, OpponentPokemonInfo, Player, PokemonInfo, StreamPlayer} from "./pt";
-import {Teams, Dex} from "pokemon-showdown";
+import {ActionEvaluator, BattleInfo, MoveType, OpponentPokemonInfo, Player, PokemonInfo, StreamPlayer} from "./pt";
+import {Teams, Dex, Pokemon} from "pokemon-showdown";
 import * as tf from "@tensorflow/tfjs-node"
 import {readdirSync} from 'fs'
 import * as path from "path"
-import {vectorizeTurnInfo} from "./vectorization";
+import {vectorizeBattleInfo} from "./vectorization";
 
 function buildAIAveraging(ai1: ActionEvaluator, ai2: ActionEvaluator, ai_w1: number): ActionEvaluator {
     return null
@@ -60,6 +60,7 @@ function softmax(logits) {
     return scores.map((s) => s / denom);
 }
 
+
 function oneHotEncode(categories, values,): number[] {
     categories.sort()
     return categories.map(c => values.includes(c) ? 1 : 0)
@@ -83,9 +84,9 @@ function normalizeName(name) {
 function getNewModel(): tf.LayersModel {
     const model = tf.sequential();
     const optimizer = tf.train.sgd(0.0005)
-    const inputL = vectorizeTurnInfo(undefined, undefined, false).length
-    model.add(tf.layers.dense({activation: "relu", units: 500, inputShape: [inputL]}));
-    model.add(tf.layers.dense({activation: "softsign", units: 1}));
+    const inputL = vectorizeBattleInfo(undefined,  false).length
+    model.add(tf.layers.dense({activation: "relu", units: 200, inputShape: [inputL]}));
+    model.add(tf.layers.dense({activation: "softsign", units: 9}));
 // Prepare the model for training: Specify the loss and the optimizer.
     model.compile({loss: 'meanSquaredError', optimizer: optimizer});
     return model
@@ -134,8 +135,7 @@ function getSortedModelLocs(): string[] {
 }
 
 
-
-async function loadModel(modelLoc: string): Promise<tf.LayersModel>{
+async function loadModel(modelLoc: string): Promise<tf.LayersModel> {
     const latestModel = await tf.loadLayersModel(`file://${modelLoc}/model.json`)
     return latestModel
 }
@@ -152,6 +152,45 @@ async function saveLatestModel(model: tf.LayersModel) {
 
 }
 
+
+function modelEvalToActionEval(battleInfo: BattleInfo, ps: any[]) {
+    let i = 0
+    const activePokemonMoves = battleInfo.playerSide[0].moves
+    const evaluations = []
+
+    while (i < 4) {
+        const m = activePokemonMoves[i]
+        const e = ps[i]
+        if (m) {
+            evaluations.push(
+                {
+                    playerAction: {type: MoveType.ATTACK, moveTarget: m},
+                    evaluation: e,
+                    // modelIdx: i
+                }
+            )
+        }
+        i++
+    }
+
+    const benchedPokemons: Pokemon[] = battleInfo.playerSide.slice(1, 6)
+
+    while (i < 9) {
+        const poke = benchedPokemons[i - 4]
+        const e = ps[i]
+        evaluations.push(
+            {
+                playerAction: {type: MoveType.SWAP, swapTarget: poke.species.id},
+                evaluation: e,
+                // modelIdx: i
+            }
+        )
+        i++
+    }
+
+    return evaluations
+}
+
 export {
     playerToStreamPlayer,
     timeout,
@@ -163,6 +202,7 @@ export {
     getLatestModelOrCreateNew,
     saveLatestModel,
     getSortedModelLocs,
-    loadModel
+    loadModel,
+    modelEvalToActionEval
 }
 

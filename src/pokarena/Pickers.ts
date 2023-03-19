@@ -1,11 +1,15 @@
 import {ActionEvaluation, ActionPicker, PlayerAction} from "./pt";
 import {softmax} from "./utils";
 
+
+
+
 class SoftmaxPicker implements ActionPicker {
     readonly pickStrategy: string = "softmax";
 
     pickMove(moveEvaluations: ActionEvaluation[]): PlayerAction {
-        const evaluations = moveEvaluations.map(e => e.evaluation)
+        const availableEvaluations = moveEvaluations.filter(e=> e.available)
+        const evaluations = availableEvaluations.map(e => e.evaluation)
         const sm = softmax(evaluations)
         let tmp = 0
         const r = Math.random()
@@ -14,7 +18,7 @@ class SoftmaxPicker implements ActionPicker {
             tmp += sm[i]
             i++
         }
-        return moveEvaluations[i - 1].playerAction;
+        return availableEvaluations[i - 1].playerAction;
     }
 
 
@@ -25,12 +29,10 @@ class RandomPicker implements ActionPicker {
     readonly pickStrategy: string = "random";
 
     pickMove(moveEvaluations: ActionEvaluation[]): PlayerAction {
-        const i = Math.floor(Math.random() * moveEvaluations.length)
+        const availableEvaluations = moveEvaluations.filter(e=> e.available)
+        const i = Math.floor(Math.random() * availableEvaluations.length)
         //TypeError: Cannot read properties of undefined (reading 'playerAction') TODO
-        if (!moveEvaluations[i]) {
-            // console.log("")
-        }
-        return moveEvaluations[i].playerAction
+        return availableEvaluations[i].playerAction
     }
 
 
@@ -40,9 +42,10 @@ class BestPicker implements ActionPicker {
     readonly pickStrategy: string = "best";
 
     pickMove(moveEvaluations: ActionEvaluation[]): PlayerAction {
+        const availableEvaluations = moveEvaluations.filter(e=> e.available)
         let max = Number.NEGATIVE_INFINITY
         let bestAction = null
-        for (const me of moveEvaluations) {
+        for (const me of availableEvaluations) {
             if (me.evaluation > max) {
                 max = me.evaluation
                 bestAction = me.playerAction

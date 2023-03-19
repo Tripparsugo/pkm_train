@@ -1,4 +1,4 @@
-import {vectorizeTurnInfo} from "./vectorization";
+import {vectorizeBattleInfo} from "./vectorization";
 import {Arena} from "./PokeArena";
 import {BattleInfo} from "./pt";
 
@@ -87,13 +87,13 @@ async function doBattle(p1, p2, battleId) {
 
     function record(activePlayer, battleInfo, request, playerAction) {
         const player = activePlayer
-        const v = vectorizeTurnInfo(battleInfo, playerAction, true).map(x => x.toFixed(2))
+        const v = vectorizeBattleInfo(battleInfo, playerAction, true).map(x => x.toFixed(2))
         const s = battleInfoToTurnState(battleInfo)
         // const tmp = _.cloneDeep(battleInfo)
         turnResults.push({player, v, s})
     }
 
-    const battleResults = await new Arena(p1, p2, record, false).doBattle()
+    const battleResults = await new Arena(p1, p2,  false).doBattle()
 
     for (const tr of turnResults) {
         // const won = battleResults.winner === tr.player

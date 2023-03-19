@@ -1,64 +1,69 @@
 import {ActionEvaluation, ActionEvaluator, BattleInfo, MoveType, OpponentPokemonInfo} from "./pt";
-import {computeMoveAveragePower} from "./utils";
-import {Pokemon, Dex} from 'pokemon-showdown';
+import {computeMoveAveragePower, modelEvalToActionEval} from "./utils";
+import {Dex, Pokemon} from 'pokemon-showdown';
 import * as _ from "lodash"
 // import {NeuralNetwork} from "brain.js";
 import * as tf from "@tensorflow/tfjs-node"
-import {vectorizeTurnInfo} from "./vectorization";
-import {LayersModel} from "@tensorflow/tfjs-node";
+import {LayersModel} from "@tensorflow/tfjs-node"
+import {vectorizeBattleInfo} from "./vectorization";
 
 
 function makeInitialActionEvaluation(battleInfo, request): ActionEvaluation[] {
     const actionEvaluations: ActionEvaluation[] = []
     const BASE_EVALUATION = 1
     const activePokemon = battleInfo.playerSide.filter(p => p.isActive)[0]
-    for (const pk of battleInfo.playerSide) {
-        //trapped can also be "hidden"
-        if (activePokemon && activePokemon.trapped) {
-            if(activePokemon.trapped){
-                // console.log("")
-            }
-            break
-        }
-
-        if (pk !== activePokemon && pk.hp > 0) {
-            actionEvaluations.push(
-                {
-                    playerAction: {type: MoveType.SWAP, swapTarget: pk.species.id},
-                    evaluation: BASE_EVALUATION
-                }
-            )
-
-        }
-    }
-    if (request.forceSwitch) {
-        return actionEvaluations
-    }
-
-    if(!request.active[0].moves){
-        // console.log("here")
-    }
-    const activeMovesIds = request.active[0].moves.map(m=> m.id)
-
-    for (const pm of activePokemon.moveSlots) {
-        if (!pm.disabled && pm.pp > 0 && activeMovesIds.includes(pm.id)) {
-            actionEvaluations.push(
-                {
-                    playerAction: {type: MoveType.ATTACK, moveTarget: pm.id},
-                    evaluation: BASE_EVALUATION
-                }
-            )
-        }
-    }
-
-    if(activeMovesIds.includes("struggle")){
+    const canSwap = !(activePokemon && activePokemon.trapped)
+    for (const pk of battleInfo.playerSide.slice(1,6)) {
+        const swappable = pk !== activePokemon && pk.hp > 0
         actionEvaluations.push(
             {
-                playerAction: {type: MoveType.ATTACK, moveTarget: "struggle"},
-                evaluation: BASE_EVALUATION
+                playerAction: {type: MoveType.SWAP, swapTarget: pk.species.id},
+                evaluation: BASE_EVALUATION,
+                available: canSwap && swappable
+
             }
         )
     }
+
+    const mustSwap = request.forceSwitch
+
+
+
+    for(let i=0; i< 4; i++){
+        if(!activePokemon){
+            actionEvaluations.push(
+                {
+                    playerAction: {type: MoveType.ATTACK, moveTarget: undefined},
+                    evaluation: BASE_EVALUATION,
+                    available: false
+                }
+            )
+        } else {
+            const pm = activePokemon.moveSlots[i]
+            const availableMove = !!pm && !pm.disabled && pm.pp > 0
+            actionEvaluations.push(
+                {
+                    playerAction: {type: MoveType.ATTACK, moveTarget: pm?.id},
+                    evaluation: BASE_EVALUATION,
+                    available: !mustSwap && availableMove
+                }
+            )
+
+
+
+        }
+    }
+
+
+
+    const struggle = activePokemon &&  activePokemon.moves.map(m => m.id).includes("struggle")
+    actionEvaluations.push(
+        {
+            playerAction: {type: MoveType.ATTACK, moveTarget: "struggle"},
+            evaluation: BASE_EVALUATION,
+            available: struggle
+        }
+    )
 
 
     return actionEvaluations
@@ -68,7 +73,7 @@ function makeInitialActionEvaluation(battleInfo, request): ActionEvaluation[] {
 function computeVsMaxPower(ownPokemon: Pokemon, opposingPokemon: OpponentPokemonInfo) {
     let maxAgainstPower = 0
     let maxReceivingPower = 0
-    if(!ownPokemon.moveSlots){
+    if (!ownPokemon.moveSlots) {
         // console.log("")
     }
     for (const ms of ownPokemon.moveSlots) {
@@ -101,8 +106,11 @@ class MovePowerEvaluator implements ActionEvaluator {
         const activePokemon = battleInfo.playerSide.filter(p => p.isActive)[0]
         const opponentActivePokemon = battleInfo.opponentSide.filter(p => p.isActive)[0]
         const POWER_BASE = 70
-        const updatedEvaluations = _.cloneDeep(initialEvaluations)
+        const updatedEvaluations:  ActionEvaluation[] = _.cloneDeep(initialEvaluations)
         for (const e of updatedEvaluations) {
+            if(!e.available){
+                continue
+            }
             if (e.playerAction.type !== MoveType.ATTACK) {
                 continue
             }
@@ -125,7 +133,7 @@ class BoostMoveEvaluator implements ActionEvaluator {
 
     evaluateMoves(battleInfo: BattleInfo, initialEvaluations: ActionEvaluation[]) {
         const activePokemon = battleInfo.playerSide.filter(p => p.isActive)[0]
-        if(!activePokemon){
+        if (!activePokemon) {
             return initialEvaluations
         }
         const opponentActivePokemon = battleInfo.opponentSide.filter(p => p.isActive)[0]
@@ -135,6 +143,9 @@ class BoostMoveEvaluator implements ActionEvaluator {
         }
         const updatedEvaluations = _.cloneDeep(initialEvaluations)
         for (const e of updatedEvaluations) {
+            if(!e.available){
+                continue
+            }
             let totalMoveBoosts = 0
             if (e.playerAction.type === MoveType.ATTACK) {
 
@@ -167,17 +178,18 @@ class DeepActionEvaluator implements ActionEvaluator {
     }
 
     evaluateMoves(battleInfo: BattleInfo, initialEvaluations: ActionEvaluation[]): ActionEvaluation[] {
-        const updatedEvaluations = _.cloneDeep(initialEvaluations)
-        for(const ae of updatedEvaluations) {
-            const v = vectorizeTurnInfo(battleInfo, ae.playerAction, true)
-            const t = tf.tensor(v, [1, v.length])
-            // @ts-ignore
-            const p = this.model.predict(t).dataSync()[0]
-            ae.evaluation = p
+        const updatedEvaluations: ActionEvaluation[] = _.cloneDeep(initialEvaluations)
+
+        const v = vectorizeBattleInfo(battleInfo, true)
+        const t = tf.tensor(v, [1, v.length])
+        // @ts-ignore
+        const ps = this.model.predict(t).dataSync()
+
+        for(let i=0; i< ps.length; i++){
+            updatedEvaluations[i].evaluation = ps[i]
         }
         return updatedEvaluations
     }
-
 
 }
 
@@ -187,7 +199,7 @@ class SwapOnWeakOffenceDefenceEvaluator implements ActionEvaluator {
     evaluateMoves(battleInfo: BattleInfo, initialEvaluations: ActionEvaluation[]) {
         const activePokemon = battleInfo.playerSide.filter(p => p.isActive)[0]
         const opponentActivePokemon = battleInfo.opponentSide.filter(p => p.isActive)[0]
-        if(!opponentActivePokemon || ! activePokemon){
+        if (!opponentActivePokemon || !activePokemon) {
             return initialEvaluations
         }
         const updatedEvaluations = _.cloneDeep(initialEvaluations)
@@ -198,7 +210,7 @@ class SwapOnWeakOffenceDefenceEvaluator implements ActionEvaluator {
 
 
         for (const e of updatedEvaluations.filter(ev => ev.playerAction.type === MoveType.SWAP)) {
-            const targetSwap: Pokemon =  battleInfo.playerSide.filter(p => p.species.id===e.playerAction.swapTarget)[0]
+            const targetSwap: Pokemon = battleInfo.playerSide.filter(p => p.species.id === e.playerAction.swapTarget)[0]
             const {
                 maxReceivingPower: maxReceivingPowerTarget,
                 maxAgainstPower: maxAgainstPowerTarget
@@ -238,14 +250,13 @@ class SwapDiscourageEvaluator implements ActionEvaluator {
 
     evaluateMoves(battleInfo: BattleInfo, initialEvaluations: ActionEvaluation[]): ActionEvaluation[] {
         const updatedEvaluations = _.cloneDeep(initialEvaluations)
-        updatedEvaluations.filter(ev=> ev.playerAction.type === MoveType.SWAP).forEach(ev=> ev.evaluation *= 0.7)
+        updatedEvaluations.filter(ev => ev.playerAction.type === MoveType.SWAP).forEach(ev => ev.evaluation *= 0.7)
 
         return updatedEvaluations;
     }
 
 
 }
-
 
 
 class PipelineEvaluator implements ActionEvaluator {
@@ -275,5 +286,12 @@ class PipelineEvaluator implements ActionEvaluator {
 
 
 export {
-    makeInitialActionEvaluation, PipelineEvaluator, MovePowerEvaluator, BoostMoveEvaluator, IdentityEvaluator, SwapOnWeakOffenceDefenceEvaluator, SwapDiscourageEvaluator, DeepActionEvaluator
+    makeInitialActionEvaluation,
+    PipelineEvaluator,
+    MovePowerEvaluator,
+    BoostMoveEvaluator,
+    IdentityEvaluator,
+    SwapOnWeakOffenceDefenceEvaluator,
+    SwapDiscourageEvaluator,
+    DeepActionEvaluator
 }

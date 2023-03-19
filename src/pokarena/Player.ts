@@ -1,4 +1,4 @@
-import {ActionEvaluator, ActionPicker, BattleInfo, Player, PlayerAction, PokemonSet} from "./pt";
+import {ActionEvaluation, ActionEvaluator, ActionPicker, BattleInfo, Player, PlayerAction, PokemonSet} from "./pt";
 import {
     BoostMoveEvaluator, DeepActionEvaluator,
     IdentityEvaluator,
@@ -12,18 +12,22 @@ import {BestPicker, RandomPicker, SoftmaxPicker} from "./Pickers";
 // import * as brain from "brain.js"
 import * as fs from "fs"
 import {getLatestModelOrCreateNew, loadModel} from "./utils";
+import {type} from "os";
 
 const FORMAT = ""
 
+type TurnCallback = (player: Player, battleInfo: BattleInfo, evs: ActionEvaluation[], pickedAction: PlayerAction) => void
 class ConcretePlayer implements Player {
     id: string;
     readonly strategy: string;
     readonly team: PokemonSet[];
     private readonly actionEvaluator: ActionEvaluator
     private readonly actionPicker: ActionPicker
+    private _turnCallback: TurnCallback
 
 
-    constructor(strategy: string, team: PokemonSet[], actionEvaluator: ActionEvaluator, actionPicker: ActionPicker) {
+
+    constructor(strategy: string, team: PokemonSet[], actionEvaluator: ActionEvaluator, actionPicker: ActionPicker, turnCallback) {
         this.id = null;
         if (strategy) {
             this.strategy = strategy;
@@ -33,6 +37,13 @@ class ConcretePlayer implements Player {
         this.team = team;
         this.actionEvaluator = actionEvaluator;
         this.actionPicker = actionPicker;
+        this._turnCallback = turnCallback
+    }
+
+
+
+    setTurnCallback(value: TurnCallback) {
+        this._turnCallback = value;
     }
 
     pickMove(battleInfo: BattleInfo, request: any): PlayerAction {
@@ -44,14 +55,15 @@ class ConcretePlayer implements Player {
 
 
         const action = this.actionPicker.pickMove(evaluations)
+        this._turnCallback(this, battleInfo, evaluations, action)
         return action
     }
 }
 
 
-function makeRandomPlayer(): Player {
+function makeRandomPlayer(turnCallback): Player {
     const team = Teams.generate(FORMAT)
-    const player = new ConcretePlayer("random", team, new IdentityEvaluator(), new RandomPicker())
+    const player = new ConcretePlayer("random", team, new IdentityEvaluator(), new RandomPicker(), turnCallback)
     return player
 }
 
@@ -60,7 +72,7 @@ function makeStandardPlayer(): Player {
     const team = Teams.generate(FORMAT)
     const evaluator = new PipelineEvaluator([new MovePowerEvaluator(),
         new BoostMoveEvaluator(), new SwapOnWeakOffenceDefenceEvaluator, new SwapDiscourageEvaluator()], "standard")
-    const player = new ConcretePlayer("standard", team, evaluator, new SoftmaxPicker())
+    const player = new ConcretePlayer("standard", team, evaluator, new SoftmaxPicker(), (a,b,c)=>null)
     return player
 }
 
@@ -70,7 +82,7 @@ async function makeLatestDeepPlayer(training: boolean): Promise<Player> {
     const ev = new DeepActionEvaluator(model)
     const picker = training ? new SoftmaxPicker() : new BestPicker()
     const team = Teams.generate(FORMAT)
-    const player = new ConcretePlayer("deep", team, ev, picker)
+    const player = new ConcretePlayer("deep", team, ev, picker, (a,b,c)=>null)
     return player
 }
 
@@ -80,7 +92,7 @@ async function makeDeepPlayer(modelLoc: string): Promise<Player> {
     const ev = new DeepActionEvaluator(model)
     const picker = new BestPicker()
     const team = Teams.generate(FORMAT)
-    const player = new ConcretePlayer("deep", team, ev, picker)
+    const player = new ConcretePlayer("deep", team, ev, picker, (a,b,c)=>null)
     return player
 
 }

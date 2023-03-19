@@ -3,6 +3,7 @@ import {BattleInfo, BattleRecord, MoveType, OpponentMove, Player, PlayerAction, 
 // @ts-ignore
 import {BattleStream, Dex, Pokemon} from 'pokemon-showdown'
 import {normalizeName, oneHotEncode, playerToStreamPlayer, timeout} from "./utils";
+import {re} from "mathjs";
 
 Dex.includeFormats()
 Dex.includeMods()
@@ -16,11 +17,10 @@ class Arena {
     private readonly log: boolean;
     private battleRecord: BattleRecord;
     readonly battleLog: string[];
-    private readonly beforeTurnCallback
     private requestCount
 
 
-    constructor(player1: Player, player2: Player, beforeTurnCallback, log: boolean) {
+    constructor(player1: Player, player2: Player, log: boolean) {
         this.battleLog = []
         this.player1 = player1;
         this.player1.id = "p1"
@@ -29,7 +29,6 @@ class Arena {
         this.stream = new BattleStream();
         this.hasFinished = false;
         this.log = log
-        this.beforeTurnCallback = beforeTurnCallback
         this.requestCount = 0
     }
 
@@ -172,8 +171,10 @@ class Arena {
         const activePlayer = this.player1.id === playerId ? this.player1 : this.player2
         const battleInfo = this.getBattleInfo(request)
         const playerAction = activePlayer.pickMove(battleInfo, request)
-        this.beforeTurnCallback(activePlayer, battleInfo, request, playerAction)
 
+        if(!request.side){
+            const h = 1
+        }
         const command = this.playerActionToStreamCommand(playerAction, request)
         this.stream.write(command);
 

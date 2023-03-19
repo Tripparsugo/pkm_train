@@ -4,13 +4,13 @@ import {makeDeepPlayer, makeRandomPlayer, makeStandardPlayer} from "./pokarena/P
 import * as fs from "fs";
 
 async function run() {
-    const BATTLES = 500
+    const BATTLES = 100
     const modelLocs = getSortedModelLocs()
     const modelN = modelLocs.length
     const opponents = [makeStandardPlayer, makeRandomPlayer]
     const data = []
 
-    for (let i = 0; i < modelN; i += 5) {
+    for (let i = 0; i < modelN; i += 10) {
         console.log(`ROUND ${i}/${modelN}`)
         const modelLoc = modelLocs[i]
         const deepPlayerGen = () => makeDeepPlayer(modelLoc)
